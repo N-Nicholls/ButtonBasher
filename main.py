@@ -14,43 +14,114 @@ from pygame.locals import (
     QUIT,
 )
 
-# Define constants for the screen width and height
+# Consts
 SCREEN_WIDTH = 1920
 SCREEN_HEIGHT = 1080
 
-# Define a player object by extending pygame.sprite.Sprite
-# The surface drawn on the screen is now an attribute of 'player'
-class Player(pygame.sprite.Sprite):
+ACCEL = 1
+MAXVX = 50
+MAXVY = 50
+FRICTION = 0.1
+GRAVITY = .5
+
+class PhysChar(pygame.sprite.Sprite):
+
+    velocityX = 0
+    velocityY = 0
+    velocityXMax = MAXVX
+    velocityYMax = MAXVY
+
     def __init__(self):
-        super(Player, self).__init__()
-        self.surf = pygame.Surface((75, 25))
+        super(PhysChar, self).__init__()
+        self.surf = pygame.Surface((25, 25))
         self.surf.fill((0, 255, 255))
         self.rect = self.surf.get_rect()
 
-    def update(self, pressed_keys):
-        if pressed_keys[K_UP]:
-            self.rect.move_ip(0, -5)
-            print("up")
-        if pressed_keys[K_DOWN]:
-            self.rect.move_ip(0, 5)
-            print("down")
-        if pressed_keys[K_LEFT]:
-            self.rect.move_ip(-5, 0)
-        if pressed_keys[K_RIGHT]:
-            self.rect.move_ip(5, 0)
+    def update(self): # super function w/ pressed_keys for movement
 
-            # Keep player on the screen
+        # 1st Law of Motion
+        self.rect.move_ip(self.velocityX, self.velocityY)
+        # Gravity, as if you're always holding down
+        if self.velocityY < self.velocityYMax:
+            self.velocityY += GRAVITY
+        # Friction
+        if(self.velocityX > 0):
+            self.velocityX -= FRICTION
+        if(self.velocityX < 0):
+            self.velocityX += FRICTION
+        if(self.velocityY > 0):
+            self.velocityY -= FRICTION
+        if(self.velocityY < 0):
+            self.velocityY += FRICTION
+
+        # Keep char on the screen
+        # If the player is bumping into an edge, will slow movement in that direction twofold
+        # This will be a problem later when there are things to bump into that aren't walls.
         if self.rect.left < 0:
             self.rect.left = 0
+            self.velocityX += 2*ACCEL
         if self.rect.right > SCREEN_WIDTH:
             self.rect.right = SCREEN_WIDTH
+            self.velocityX -= 2*ACCEL
         if self.rect.top <= 0:
+            self.velocityY += 2*ACCEL
             self.rect.top = 0
         if self.rect.bottom >= SCREEN_HEIGHT:
+            self.velocityY -= 2*ACCEL
             self.rect.bottom = SCREEN_HEIGHT
-    def gravity(self):
-        self.rect.move_ip(0, 2)
 
+    def handle_collision(self, group): # can be called in classes where necessary, with whatever group is necessary
+        collided_objects = pygame.sprite.spritecollide(self, group, False)
+        for obj in collided_objects:
+            # Collision response logic here
+            # Example: stop movement on collision
+            if self.velocityX > 0:  # Moving right
+                self.rect.right = obj.rect.left
+            elif self.velocityX < 0:  # Moving left
+                self.rect.left = obj.rect.right
+            if self.velocityY > 0:  # Moving down
+                self.rect.bottom = obj.rect.top
+            elif self.velocityY < 0:  # Moving up
+                self.rect.top = obj.rect.bottom
+            self.velocityX = 0
+            self.velocityY = 0
+
+
+class Block(PhysChar): # can be collided with, cannot collide itself (won't move)
+    def __init__(self, X, Y):
+        super().__init__()
+        self.surf = pygame.Surface((25, 25))
+        self.surf.fill((165, 42, 42))
+        self.rect = self.surf.get_rect(center = (X, Y))
+
+# Define a player object by extending pygame.sprite.Sprite
+# The surface drawn on the screen is now an attribute of 'player'
+class Player(PhysChar):
+
+    def __init__(self):
+        super().__init__()
+        self.surf = pygame.Surface((25, 25)) # overrides the parent's surf
+        self.surf.fill((0, 255, 255))
+        self.rect = self.surf.get_rect()
+    
+    def update(self, pressed_keys, blocks):
+        # if you're moving and not at max speed, increase speed
+        # note: no checks for capability of movement (collision)
+        # might be a problem at higher speeds
+        if pressed_keys[K_DOWN] and self.velocityY < self.velocityYMax: 
+            print(self.velocityY)
+            self.velocityY += ACCEL
+        if pressed_keys[K_UP] and self.velocityY > -self.velocityYMax:
+            print(self.velocityY)
+            self.velocityY -= ACCEL
+        if pressed_keys[K_LEFT] and self.velocityX > -self.velocityXMax:
+            print(self.velocityX)
+            self.velocityX -= ACCEL
+        if pressed_keys[K_RIGHT] and self.velocityX < self.velocityXMax:
+            print(self.velocityX)
+            self.velocityX += ACCEL
+        super().update()
+        self.handle_collision(blocks)
 
 class Enemy(pygame.sprite.Sprite):
     def __init__(self):
@@ -67,32 +138,31 @@ class Enemy(pygame.sprite.Sprite):
     
     def update(self):
         self.rect.move_ip(-self.speed, 0)
-        self.rect.move_ip(0, self.speed/2) # gravity
         if self.rect.right < 0:
             self.kill()
-
-class Block(pygame.sprite.Sprite):
-    def __init__(self):
-        super(Block, self).__init__()
-        self.surf = pygame.Surface(())
-
-
-
 
 
 # basic variables
 pygame.init()
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 running = True
-enemies = pygame.sprite.Group() # Note: 
+enemies = pygame.sprite.Group()
+blocks = pygame.sprite.Group()
 player = Player()
+
+block = Block(990, 540)
+blocks.add(block)
 
 # events and timers
 ADDENEMY = pygame.USEREVENT + 1
-# pygame.time.set_timer(ADDENEMY, 250)
+# pygame.time.set_timer(ADDENEMY, 250) # Temp removed 
 
 all_sprites = pygame.sprite.Group()
 all_sprites.add(player)
+all_sprites.add(block)
+
+
+clock = pygame.time.Clock()
 
 # Main loop
 while running:
@@ -113,9 +183,7 @@ while running:
 
 
     pressed_keys = pygame.key.get_pressed()
-    player.update(pressed_keys)
-
-    player.gravity()
+    player.update(pressed_keys, blocks)
 
     enemies.update()
 
@@ -131,3 +199,4 @@ while running:
 
     # Update the display
     pygame.display.flip()
+    clock.tick(30) # framerate, 30 fps
