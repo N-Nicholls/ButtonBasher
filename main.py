@@ -16,8 +16,11 @@ class PhysChar(pygame.sprite.Sprite):
     maxSpeed = 10
     speedX = 0
     speedY = 0
+    ON_GROUND = 0 # timer 3 to 0, if 0, then on ground
+    ON_GROUND_FRAMES = 3
 
     def __init__(self, xpos = 0, ypos = 0, width = 25, height = 25, red = 255, green = 255, blue = 255):
+
         super(PhysChar, self).__init__()
         self.surf = pygame.Surface((width, height))
         self.surf.fill((0, 255, 255))
@@ -35,26 +38,27 @@ class PhysChar(pygame.sprite.Sprite):
         self.rect.x += dx
         self.rect.y += dy
 
+        if self.ON_GROUND > 0:
+            self.ON_GROUND -= 1
+
         # If you collide with a wall, move out based on velocity
         for block in blocks:
             if self.rect.colliderect(block.rect):
-                if dx > 0: # Moving right; Hit the left side of the wall
+                if dx > 0: # moving right 
                     self.rect.right = block.rect.left
                     self.speedX -= 1
-                if dx < 0: # Moving left; Hit the right side of the wall
+                if dx < 0: # moving left
                     self.rect.left = block.rect.right
                     self.speedX += 1
-                if dy > 0: # Moving down; Hit the top side of the wall
+                if dy > 0: # moving down
                     self.rect.bottom = block.rect.top
                     self.speedY -= 1
-                if dy < 0: # Moving up; Hit the bottom side of the wall
+                    self.ON_GROUND = self.ON_GROUND_FRAMES
+                if dy < 0: # moving up
                     self.rect.top = block.rect.bottom
                     self.speedY += 1
 
-    def update(self): # super function w/ pressed_keys for movement
-        self.move(self.speedX, 0)
-        self.move(0, self.speedY)
-
+        # "friction"
         if self.rect.left < 0: # moving left
             self.rect.left = 0
             self.speedX += 1
@@ -67,8 +71,16 @@ class PhysChar(pygame.sprite.Sprite):
         if self.rect.bottom >= SCREEN_HEIGHT: # moving down
             self.rect.bottom = SCREEN_HEIGHT
             self.speedY -= 1
+            self.ON_GROUND = self.ON_GROUND_FRAMES
+
+    def printStuff(self):
+        print("x: " + str(self.rect.x) + " y: " + str(self.rect.y) + " speedX: " + str(self.speedX) + " speedY: " + str(self.speedY) + " onGround: " + str(self.ON_GROUND > 0))
+
+    def update(self):
+        # maintains movement
+        self.move(self.speedX, 0)
+        self.move(0, self.speedY)
         
-        print(self.speedX, self.speedY)
 
 class Block(PhysChar): # can be collided with, cannot collide itself (won't move)
     def __init__(self, xpos, ypos, width, height, red, green, blue):
@@ -80,14 +92,18 @@ class Player(PhysChar):
         super().__init__() 
     
     def update(self, pressed_keys):
+        # movement
+        player.printStuff()
         if pressed_keys[K_DOWN] and self.speedY < self.maxSpeed:
             self.speedY += 1
-        if pressed_keys[K_UP] and self.speedY > -self.maxSpeed:
-            self.speedY -= 1
+        if pressed_keys[K_UP] and self.speedY > -self.maxSpeed and self.ON_GROUND > 0:
+            self.speedY -= 20
         if pressed_keys[K_LEFT] and self.speedX > -self.maxSpeed:
             self.speedX -= 1
         if pressed_keys[K_RIGHT] and self.speedX < self.maxSpeed:
             self.speedX += 1
+
+        self.speedY += .3 # gravity
         super().update()
 
 
@@ -157,7 +173,6 @@ while running:
 
     pressed_keys = pygame.key.get_pressed()
     player.update(pressed_keys)
-
     enemies.update()
 
     # Fill the screen with black
