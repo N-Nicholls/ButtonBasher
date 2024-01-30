@@ -1,5 +1,7 @@
 import pygame
 import random
+import math
+
 from pygame.locals import (
     K_UP,
     K_DOWN,
@@ -42,7 +44,7 @@ level = [
         "B                              BBBBB                           B", # 21
         "B                                                              B", # 22
         "B                                                              B", # 23
-        "B                                                BBBB          B", # 24
+        "B            BBBFFFFBBB                          BBBB          B", # 24
         "B                                                              B", # 25
         "B                                                              B", # 26
         "BBBB BBB                           RRRRRRRRRRR                 B", # 27
@@ -69,7 +71,7 @@ class PhysChar(pygame.sprite.Sprite):
     ON_GROUND_FRAMES = 3 # since it carrys over a bit, you can do long/small jumps
     friction = 0.95 # constant multiplier, lowers by 5% per frame
 
-    def __init__(self, xpos = 0, ypos = 0, width = 25, height = 25, fric = 0.95, red = 255, green = 255, blue = 255):
+    def __init__(self, xpos = 0, ypos = 0, width = BLOCKSIZE, height = BLOCKSIZE, fric = 0.95, red = 255, green = 255, blue = 255):
         super(PhysChar, self).__init__()
         self.surf = pygame.Surface((width, height))
         self.surf.fill((red, green, blue))
@@ -105,7 +107,8 @@ class PhysChar(pygame.sprite.Sprite):
                 if dy > 0: # moving down
                     self.rect.bottom = block.rect.top
                     self.speedY = 0 # stop falling, makes it so you don't bounce
-                    self.speedX *= block.friction # friction
+                    if math.fabs(self.speedX) < self.maxSpeed*1.5: # only lets you get 1.5 times speed
+                        self.speedX *= block.friction # friction
                     self.ON_GROUND = self.ON_GROUND_FRAMES # reset on ground timer
                 if dy < 0: # moving up
                     self.rect.top = block.rect.bottom
@@ -134,13 +137,21 @@ class PhysChar(pygame.sprite.Sprite):
         self.move(0, self.speedY)
         
 class Block(PhysChar): # can be collided with, cannot collide itself (won't move)
-    def __init__(self, xpos, ypos, width, height, fric, red, green, blue):
+    def __init__(self, xpos, ypos, width = BLOCKSIZE, height = BLOCKSIZE, fric = 0.95, red = 150, green = 75, blue = 0):
         super().__init__(xpos, ypos, width, height, fric, red, green, blue)
+
+class FallThrough(Block): # if you're on it and press down, you fall through
+    PASSABLE = False
+    PASSABLE_FRAMES = # since it carrys over a bit, you can do long/small jumps
+    
+
+    def __init__(self, xpos, ypos, width = BLOCKSIZE, height = BLOCKSIZE/2, fric = 0.95, red = 0, green = 100, blue = 0):
+        super().__init__(xpos, ypos - height/2-1, width, height, fric, red, green, blue)
 
 class Player(PhysChar):
     GRAVITY = 0.6
 
-    def __init__(self, xpos, ypos, width, height, fric, red, green, blue):
+    def __init__(self, xpos, ypos, width = BLOCKSIZE, height = BLOCKSIZE, fric = 0.95, red = 0, green = 255, blue = 255):
         super().__init__(xpos, ypos, width, height, fric, red, green, blue) 
     
     def update(self, pressed_keys):
@@ -187,20 +198,23 @@ enemies = pygame.sprite.Group()
 blocks = pygame.sprite.Group()
 Mobs = []
 BlockArr = []
-x = OFFSET # places from the center, so offset by 30 (should be 0)
+x = OFFSET # places from the center, so offset by half blocksize (effectively x,y = 0)
 y = OFFSET
 for row in level:
         for col in row:
             if col == "B": #block
-                BlockArr.append(Block(x, y, BLOCKSIZE, BLOCKSIZE, 0.95, 150, 75, 0)) # 60x60 is size of block
+                BlockArr.append(Block(x, y))
             if col == "P": # player
-                Mobs.append(Player(x, y, BLOCKSIZE, BLOCKSIZE, 0.95, 0, 255, 255))
+                Mobs.append(Player(x, y))
             if col == "R": # Redbull
                 BlockArr.append(Block(x, y, BLOCKSIZE, BLOCKSIZE, 1.05, 255, 0, 0))
             if col == "S": # Sludge
                 BlockArr.append(Block(x, y, BLOCKSIZE, BLOCKSIZE, 0.85, 0, 255, 0))
             if col == "I": # Ice
                 BlockArr.append(Block(x, y, BLOCKSIZE, BLOCKSIZE, 1, 0, 0, 255))
+            if col == "F": # Fallthrough
+                BlockArr.append(FallThrough(x, y))
+                pass 
             x += BLOCKSIZE # 60x60 is size of block
         y += BLOCKSIZE
         x = OFFSET
