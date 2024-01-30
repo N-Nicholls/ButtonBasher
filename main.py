@@ -20,19 +20,19 @@ FRAMERATE = 30
 # level is a list of strings, each string is a row of blocks
 # World is 1920x1080, each block is 30x30, so 64x36 blocks
 level = [
-        "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB", # 0
+        ("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB", # 0
         "B                                                              B", # 1
         "B                                                              B", # 2
         "B                                                              B", # 3
-        "B                                                              B", # 4
-        "B                                                              B", # 5
-        "B                                                              B", # 6
-        "B                                                              B", # 7
-        "B                                                              B", # 8
-        "B                                                              B", # 9
-        "B                                                              B", # 10
-        "B                                                              B", # 11
-        "B                                                              B", # 12
+        "B                                  BBBBBB B B BBBBBB           B", # 4
+        "B                                       S S R R                B", # 5
+        "B                                       S S R R                B", # 6
+        "B                                       S S R R                B", # 7
+        "B                              BBB      S S R R                B", # 8
+        "B                                       S S R R                B", # 9
+        "B                                       S S R R                B", # 10
+        "B                                       S S R R                B", # 11
+        "B                   BBBB                S S R R                B", # 12
         "B                                                              B", # 13
         "B                                                              B", # 14
         "B                                                              B", # 15
@@ -41,7 +41,7 @@ level = [
         "B                                                              B", # 18
         "B           BBBB                                               B", # 19
         "B                                                              B", # 20
-        "B                              BBBBB                           B", # 21
+        "B                              BBBBB   BJJJJJJBBB              B", # 21
         "B                                                              B", # 22
         "B                                                              B", # 23
         "B            BBBFFFFBBB                          BBBB          B", # 24
@@ -55,7 +55,45 @@ level = [
         "B                  B B                                         B", # 32
         "B                  B B                                         B", # 33
         "B                                                              B", # 34
-        "BBBBBBBBBSSSIIIIIIISSSBBBBBBBBBBBBBBBBBBBBSSSSSBBBBBBBBBBBBBBBBB", # 35
+        "BBBBBBBBBSSSIIIIIIISSSBBBBBBBBBBBBBBBBBBBBSSSSSBBBBBBBBBBBBBBBBB",), # 35
+
+        ("JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJ",
+        "J                                                              J",
+        "J                                                              J",
+        "J                                                              J",
+        "J                                                              J",
+        "J                                                              J",
+        "J                                                              J",
+        "J                                                              J",
+        "J                                                              J",
+        "J                                                              J",
+        "J                              P                               J",
+        "J                                                              J",
+        "J                                                              J",
+        "J                                                              J",
+        "J                                                              J",
+        "J                                                              J",
+        "J                                                              J",
+        "J                                                              J",
+        "J                                                              J",
+        "J                                                              J",
+        "J                                                              J",
+        "J                  GGGGGGGGGGGG                                J",
+        "J                                                              J",
+        "J                                                              J",
+        "J                                      GGGGGGG                 J",
+        "J                                                     G        J",
+        "J                                                     G        J",
+        "J                                                     G        J",
+        "J             GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG        J",
+        "J                                                              J",
+        "J                                                              J",
+        "J                                                              J",
+        "J                                                              J",
+        "J                                                              J",
+        "J                                                              J",
+        "JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJ",
+        )
         ]
 # level constants
 BLOCKSIZE = 30
@@ -70,13 +108,18 @@ class PhysChar(pygame.sprite.Sprite):
     ON_GROUND = 0 # timer 3 to 0, if 0, then on ground
     ON_GROUND_FRAMES = 3 # since it carrys over a bit, you can do long/small jumps
     friction = 0.95 # constant multiplier, lowers by 5% per frame
+    elasticity = 0 # how much it deflects, 0 is no bounce, 1 is perfect bounce. Higher will add energy
+    passable = 0
+    PASSABLE_FRAMES = 15 # how long you can fall through a fallthrough block, roughly 1/2 sec @ 30 fps
+    SPEED_CUTOFF = 0.2
 
-    def __init__(self, xpos = 0, ypos = 0, width = BLOCKSIZE, height = BLOCKSIZE, fric = 0.95, red = 255, green = 255, blue = 255):
+    def __init__(self, xpos = 0, ypos = 0, width = BLOCKSIZE, height = BLOCKSIZE, fric = 0.95, elas = 0, red = 255, green = 255, blue = 255):
         super(PhysChar, self).__init__()
         self.surf = pygame.Surface((width, height))
         self.surf.fill((red, green, blue))
         self.rect = self.surf.get_rect(center = (xpos, ypos))
         self.friction = fric
+        self.elasticity = elas
 
     def move(self, dx, dy):
         if dx != 0:
@@ -97,23 +140,31 @@ class PhysChar(pygame.sprite.Sprite):
 
         # collision w/ blocks and walls
         for block in blocks:
-            if self.rect.colliderect(block.rect):
-                if dx > 0: # moving right 
-                    self.rect.right = block.rect.left
-                    self.speedX -= 1
-                if dx < 0: # moving left
-                    self.rect.left = block.rect.right
-                    self.speedX += 1
-                if dy > 0: # moving down
-                    self.rect.bottom = block.rect.top
-                    self.speedY = 0 # stop falling, makes it so you don't bounce
-                    if math.fabs(self.speedX) < self.maxSpeed*1.5: # only lets you get 1.5 times speed
-                        self.speedX *= block.friction # friction
-                    self.ON_GROUND = self.ON_GROUND_FRAMES # reset on ground timer
-                if dy < 0: # moving up
-                    self.rect.top = block.rect.bottom
-                    self.speedY += 1
-        if self.rect.left < 0: # moving left
+            if block.passable <= 0:
+                if self.rect.colliderect(block.rect):
+                    avgElas = (self.elasticity*block.elasticity)/2
+                    if dx > 0: # moving right 
+                        self.rect.right = block.rect.left
+                        self.speedX = -self.speedX*avgElas# bounce
+                        if math.fabs(self.speedY) < self.maxSpeed*1.5: # only lets you get 1.5 times speed
+                            self.speedY *= block.friction # friction
+                    if dx < 0: # moving left
+                        self.rect.left = block.rect.right
+                        self.speedX = -self.speedX*avgElas # bounce
+                        if math.fabs(self.speedY) < self.maxSpeed*1.5: # only lets you get 1.5 times speed
+                            self.speedY *= block.friction # friction
+                    if dy > 0: # moving down
+                        self.rect.bottom = block.rect.top
+                        self.speedY = -self.speedY*avgElas # stop falling, makes it so you don't bounce
+                        if math.fabs(self.speedX) < self.maxSpeed*1.5: # only lets you get 1.5 times speed
+                            self.speedX *= block.friction # friction
+                        self.ON_GROUND = self.ON_GROUND_FRAMES # reset on ground timer
+                    if dy < 0: # moving up
+                        self.rect.top = block.rect.bottom
+                        self.speedY = -self.speedY*avgElas # bounce
+                        if math.fabs(self.speedX) < self.maxSpeed*1.5: # only lets you get 1.5 times speed
+                            self.speedX *= block.friction # friction
+        '''if self.rect.left < 0: # moving left
             self.rect.left = 0
             self.speedX += 1
         if self.rect.right > SCREEN_WIDTH: # moving right
@@ -125,7 +176,7 @@ class PhysChar(pygame.sprite.Sprite):
         if self.rect.bottom >= SCREEN_HEIGHT: # moving down
             self.rect.bottom = SCREEN_HEIGHT
             self.speedY -= 1
-            self.ON_GROUND = self.ON_GROUND_FRAMES # reset on ground timer
+            self.ON_GROUND = self.ON_GROUND_FRAMES # reset on ground timer'''
 
     # for debugging, prints at start of a frame, so before movement inputs
     def printStuff(self):
@@ -135,24 +186,32 @@ class PhysChar(pygame.sprite.Sprite):
         # maintains movement
         self.move(self.speedX, 0)
         self.move(0, self.speedY)
+
+        if math.fabs(self.speedX) < self.SPEED_CUTOFF: # stop doing stupid calculations
+            self.speedX = 0
+        if math.fabs(self.speedY) < self.SPEED_CUTOFF:
+            self.speedY = 0
         
 class Block(PhysChar): # can be collided with, cannot collide itself (won't move)
-    def __init__(self, xpos, ypos, width = BLOCKSIZE, height = BLOCKSIZE, fric = 0.95, red = 150, green = 75, blue = 0):
-        super().__init__(xpos, ypos, width, height, fric, red, green, blue)
+    def __init__(self, xpos, ypos, width = BLOCKSIZE, height = BLOCKSIZE, fric = 0.95, elas = 0, red = 150, green = 75, blue = 0):
+        super().__init__(xpos, ypos, width, height, fric, elas, red, green, blue)
 
 class FallThrough(Block): # if you're on it and press down, you fall through
-    PASSABLE = False
-    PASSABLE_FRAMES = # since it carrys over a bit, you can do long/small jumps
-    
+    def __init__(self, xpos, ypos, width = BLOCKSIZE, height = BLOCKSIZE/2, fric = 0.95, elas = 0, red = 0, green = 100, blue = 0):
+        super().__init__(xpos, ypos - height/2-1, width, height, fric, elas, red, green, blue)
 
-    def __init__(self, xpos, ypos, width = BLOCKSIZE, height = BLOCKSIZE/2, fric = 0.95, red = 0, green = 100, blue = 0):
-        super().__init__(xpos, ypos - height/2-1, width, height, fric, red, green, blue)
+    def update(self, pressed_keys, pc): # This makes ALL fallthrough blocks fallthrough, not just the one you're on
+        if pressed_keys[K_DOWN] and pc.ON_GROUND > 0: # will need a diff passable flag for enemies + mulitplayer
+            self.passable = self.PASSABLE_FRAMES
+        else:
+            if self.passable != 0:
+                self.passable -= 1
 
 class Player(PhysChar):
     GRAVITY = 0.6
 
-    def __init__(self, xpos, ypos, width = BLOCKSIZE, height = BLOCKSIZE, fric = 0.95, red = 0, green = 255, blue = 255):
-        super().__init__(xpos, ypos, width, height, fric, red, green, blue) 
+    def __init__(self, xpos, ypos, width = BLOCKSIZE, height = BLOCKSIZE, fric = 0.95, elas = 1, red = 0, green = 255, blue = 255):
+        super().__init__(xpos, ypos, width, height, fric, elas, red, green, blue) 
     
     def update(self, pressed_keys):
         # movement
@@ -196,25 +255,32 @@ running = True
 all_sprites = pygame.sprite.Group()
 enemies = pygame.sprite.Group()
 blocks = pygame.sprite.Group()
+fallThrough = pygame.sprite.Group()
+
 Mobs = []
 BlockArr = []
+
 x = OFFSET # places from the center, so offset by half blocksize (effectively x,y = 0)
 y = OFFSET
-for row in level:
+for row in level[1]:
         for col in row:
             if col == "B": #block
                 BlockArr.append(Block(x, y))
             if col == "P": # player
                 Mobs.append(Player(x, y))
             if col == "R": # Redbull
-                BlockArr.append(Block(x, y, BLOCKSIZE, BLOCKSIZE, 1.05, 255, 0, 0))
+                BlockArr.append(Block(x, y, BLOCKSIZE, BLOCKSIZE, 1.05, 0, 255, 0, 0))
             if col == "S": # Sludge
-                BlockArr.append(Block(x, y, BLOCKSIZE, BLOCKSIZE, 0.85, 0, 255, 0))
+                BlockArr.append(Block(x, y, BLOCKSIZE, BLOCKSIZE, 0.85, 0, 0, 255, 0))
             if col == "I": # Ice
-                BlockArr.append(Block(x, y, BLOCKSIZE, BLOCKSIZE, 1, 0, 0, 255))
+                BlockArr.append(Block(x, y, BLOCKSIZE, BLOCKSIZE, 1, 0, 0, 0, 255))
             if col == "F": # Fallthrough
                 BlockArr.append(FallThrough(x, y))
-                pass 
+                fallThrough.add(BlockArr[-1]) # -1 indicates last elem
+            if col == "J": # JumpPad
+                BlockArr.append(Block(x, y, BLOCKSIZE, BLOCKSIZE, 0.95, 1.7, 255, 0, 255))
+            if col == "G": # Granite
+                BlockArr.append(Block(x, y, BLOCKSIZE, BLOCKSIZE, 0.93, 0.3, 100, 100, 100))
             x += BLOCKSIZE # 60x60 is size of block
         y += BLOCKSIZE
         x = OFFSET
@@ -252,7 +318,8 @@ while running:
 
 
     pressed_keys = pygame.key.get_pressed()
-    Mobs[0].update(pressed_keys)
+    fallThrough.update(pressed_keys, Mobs[0]) # fallthrough update
+    Mobs[0].update(pressed_keys) # player physics update
     enemies.update()
 
     # Fill the screen with black
