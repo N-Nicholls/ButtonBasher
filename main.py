@@ -16,55 +16,13 @@ from pygame.locals import (
 SCREEN_WIDTH = 1920
 SCREEN_HEIGHT = 1080
 FRAMERATE = 30
-
-# level is a list of strings, each string is a row of blocks
-# World is 1920x1080, each block is 30x30, so 64x36 blocks
-LEVEL_CHOICE = 0
-level = [
-        ("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB", # 0
-        "B                                                              B", # 1
-        "B                                                              B", # 2
-        "B                                                              B", # 3
-        "B                                  BBBBBB B B BBBBBB           B", # 4
-        "B                                       S S R R                B", # 5
-        "B                                       S S R R                B", # 6
-        "B                                       S S R R                B", # 7
-        "B                              BBB      S S R R                B", # 8
-        "B                                       S S R R                B", # 9
-        "B                                       S S R R                B", # 10
-        "B                                       S S R R                B", # 11
-        "B                   BBBB                S S R R                B", # 12
-        "B                                                              B", # 13
-        "B                                                              B", # 14
-        "B                                                              B", # 15
-        "B                                                              B", # 16
-        "B                                P                             B", # 17
-        "B                                                              B", # 18
-        "B           BBBB                                               B", # 19
-        "B                                                              B", # 20
-        "B                              BBBBB   BJJJJJJBBB              B", # 21
-        "B                                                              B", # 22
-        "B                                                              B", # 23
-        "B            BBBFFFFBBB                          BBBB          B", # 24
-        "B                                                              B", # 25
-        "B                                                              B", # 26
-        "BBBB BBB                           RRRRRRRRRRR                 B", # 27
-        "B                                                              B", # 28
-        "B                                                              B", # 29
-        "B                                                         BBBBBB", # 30
-        "B                  B B                                         B", # 31
-        "B                  B B                                         B", # 32
-        "B                  B B BBBGGGSRJJJJ          ^^^^              B", # 33
-        "B                                                              B", # 34
-        "BBBBBBBBBSSSIIIIIIISSSBBBBBBBBBBBBBBBBBBBBSSSSSBBBBBBBBBBBBBBBBB",), # 35
-
         ("JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJ",
         "J                                                              J",
         "J                                                              J",
         "J                                                              J",
         "J                                               <              J",
         "J                                               <              J",
-        "J                                               <              J",
+        "J                                       VV      <              J",
         "J                       ^                       <              J",
         "J                       ^                       <              J",
         "J                       ^                       <              J",
@@ -72,7 +30,7 @@ level = [
         "J                       ^                       <              J",
         "J                                               <              J",
         "J                                                              J",
-        "J      >>>>>>>>>>>>                         <<<<<<<<<<<<<      J",
+        "J      >>>>>>>>>>>>                VV       <<<<<<<<<<<<<      J",
         "J                           ^^^^^                              J",
         "J                                                              J",
         "J                     BBBBBBBBBBBBBBBBBBB                      J",
@@ -96,13 +54,16 @@ level = [
         "JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJ",
         )
         ]
+
+levelMask = [
+
+]
 # level constants
 BLOCKSIZE = 30
 OFFSET = BLOCKSIZE/2
 
 
 class PhysChar(pygame.sprite.Sprite):
-
     maxSpeed = 10
     speedX = 0
     speedY = 0
@@ -169,13 +130,13 @@ class PhysChar(pygame.sprite.Sprite):
                         self.speedX = -self.speedX*avgElas# bounce
                         if math.fabs(self.speedY) < self.maxSpeed*1.5: # only lets you get 1.5 times speed
                             self.speedY *= block.friction # friction
-                        block.onRight(self)
+                        block.onLeft(self)
                     if dx < 0: # moving left
                         self.rect.left = block.rect.right
                         self.speedX = -self.speedX*avgElas # bounce
                         if math.fabs(self.speedY) < self.maxSpeed*1.5: # only lets you get 1.5 times speed
                             self.speedY *= block.friction # friction
-                        block.onLeft(self)
+                        block.onRight(self)
                     if dy > 0: # moving down
                         self.rect.bottom = block.rect.top
                         self.speedY = -self.speedY*avgElas # stop falling, makes it so you don't bounce
@@ -237,13 +198,6 @@ class FallThrough(Block): # if you're on it and press down, you fall through
 
     def update(self):
         self.PASSABLE -= 1
-
-    '''def update(self, pressed_keys, pc): # This makes ALL fallthrough blocks fallthrough, not just the one you're on
-        if pressed_keys[K_DOWN] and pc.ON_GROUND > 0: # will need a diff passable flag for enemies + mulitplayer
-            self.PASSABLE = self.PASSABLE_FRAMES
-        else:
-            if self.PASSABLE != 0:
-                self.PASSABLE -= 1'''
 
 # Jump Pad applies constant speed for as long as you're on it, which isn't how they actually
 # behave but it also doesn't take away from the game
@@ -365,6 +319,14 @@ class Enemy(pygame.sprite.Sprite):
         if self.rect.right < 0:
             self.kill()
 
+class level():
+    def __init__(self, level):
+        self.level = level
+
+    def printLevel(self):
+        for row in self.level:
+            print(row)
+
 # main
 # initialize pygame
 pygame.init()
@@ -374,13 +336,15 @@ running = True
 all_sprites = pygame.sprite.Group()
 enemies = pygame.sprite.Group()
 blocks = pygame.sprite.Group()
-fallThrough = pygame.sprite.Group()
+# fallThrough = pygame.sprite.Group()
 
 Mobs = []
 BlockArr = []
 
 x = OFFSET # places from the center, so offset by half blocksize (effectively x,y = 0)
 y = OFFSET
+# level is a list of strings, each string is a row of blocks
+# World is 1920x1080, each block is 30x30, so 64x36 blocks
 for row in level[LEVEL_CHOICE]:
         for col in row:
             if col == "B": #block
@@ -395,7 +359,7 @@ for row in level[LEVEL_CHOICE]:
                 BlockArr.append(Block(x, y, BLOCKSIZE, BLOCKSIZE, 1, 0, 0, 0, 255))
             if col == "F": # Fallthrough
                 BlockArr.append(FallThrough(x, y))
-                fallThrough.add(BlockArr[-1]) # -1 indicates last elem
+                # fallThrough.add(BlockArr[-1]) # -1 indicates last elem
             if col == "J": # JumpPad
                 BlockArr.append(Block(x, y, BLOCKSIZE, BLOCKSIZE, 0.95, 1.7, 255, 0, 255))
             if col == "G": # Granite

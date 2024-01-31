@@ -29,21 +29,14 @@ Should objects be added to the sprite group on initialization?
 - How to handle removal from sprite group
 
 ## Todo
-level designer (dev only)
-- choose a data type (array?)
-- Gridlike placement (32x18), * 60 for full resolution
-- parser
-blocks
-- Fall-through platforms
+- adaptable resolution, speed, framerate
+- transparency
+- liquid
 - ladders
-- water
 - doors
-timer
-- reads
-- resets
-- moves
-buttons
-- random placement
-- hitbox
-- directional input
-objects
+- timer
+- move calc w/ surface (bounce more/less with jump)
+- buttons
+- wall jump, double jump
+- jump pads, not trampolines
+- directional conveyor belts
