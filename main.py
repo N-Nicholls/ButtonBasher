@@ -16,48 +16,7 @@ from pygame.locals import (
 SCREEN_WIDTH = 1920
 SCREEN_HEIGHT = 1080
 FRAMERATE = 30
-        ("JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJ",
-        "J                                                              J",
-        "J                                                              J",
-        "J                                                              J",
-        "J                                               <              J",
-        "J                                               <              J",
-        "J                                       VV      <              J",
-        "J                       ^                       <              J",
-        "J                       ^                       <              J",
-        "J                       ^                       <              J",
-        "J                       ^      P                <              J",
-        "J                       ^                       <              J",
-        "J                                               <              J",
-        "J                                                              J",
-        "J      >>>>>>>>>>>>                VV       <<<<<<<<<<<<<      J",
-        "J                           ^^^^^                              J",
-        "J                                                              J",
-        "J                     BBBBBBBBBBBBBBBBBBB                      J",
-        "J                                                              J",
-        "J                                                              J",
-        "J                                     BBBBB                    J",
-        "J                  GGGGGGGGGGGG                                J",
-        "J                                                              J",
-        "J                                                              J",
-        "J                                      GGGGGGG                 J",
-        "J                                                     G        J",
-        "J                        BBBBB                        G        J",
-        "J                                                     G        J",
-        "J             GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG        J",
-        "J                                                              J",
-        "J                                                              J",
-        "J                                                              J",
-        "J                                                              J",
-        "J                                                              J",
-        "J                                                              J",
-        "JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJ",
-        )
-        ]
 
-levelMask = [
-
-]
 # level constants
 BLOCKSIZE = 30
 OFFSET = BLOCKSIZE/2
@@ -228,7 +187,7 @@ class Conveyor(Block): #1-left, 2-right, 3-up, 4-down
             case _:
                 pass
 
-    def onLeft(self, pc):
+    def onLeft(self, pc): #doesn't work, as well as right
         match self.direction:
             case 1:
                 if math.fabs(pc.speedX) < pc.maxSpeed*1.5: 
