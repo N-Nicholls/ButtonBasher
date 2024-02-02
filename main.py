@@ -12,15 +12,6 @@ from pygame.locals import (
     QUIT,
 )
 
-# constants
-SCREEN_WIDTH = 1920
-SCREEN_HEIGHT = 1080
-FRAMERATE = 30
-
-# level constants
-BLOCKSIZE = 30
-OFFSET = BLOCKSIZE/2
-
 
 class PhysChar(pygame.sprite.Sprite):
     maxSpeed = 10
@@ -41,8 +32,12 @@ class PhysChar(pygame.sprite.Sprite):
         ON_GROUND, JUMP_MULT, GRAVITY, ON_CONVEYORX, ON_CONVEYORY,
     ]
 
-    def __init__(self, xpos = 0, ypos = 0, width = BLOCKSIZE, height = BLOCKSIZE, fric = 0.95, elas = 0, red = 255, green = 255, blue = 255):
+    def __init__(self, game, xpos = 0, ypos = 0, width = None, height = None, fric = 0.95, elas = 0, red = 255, green = 255, blue = 255):
         super(PhysChar, self).__init__()
+        self.game = game
+        width = width if width is not None else Game.blockSize # because wiidth height params can't see Game class
+        height = height if height is not None else Game.blockSize
+
         self.surf = pygame.Surface((width, height))
         self.surf.fill((red, green, blue))
         self.rect = self.surf.get_rect(center = (xpos, ypos))
@@ -80,7 +75,7 @@ class PhysChar(pygame.sprite.Sprite):
         self.ON_CONVEYORY = 0
 
         # collision w/ blocks and walls
-        for block in blocks:
+        for block in self.game.state.blocks:
             if block.PASSABLE <= 0:
                 if self.rect.colliderect(block.rect):
                     avgElas = (self.elasticity*block.elasticity)/2
@@ -139,12 +134,17 @@ class PhysChar(pygame.sprite.Sprite):
             self.speedY = 0
         
 class Block(PhysChar): # can be collided with, cannot collide itself (won't move)
-    def __init__(self, xpos, ypos, width = BLOCKSIZE, height = BLOCKSIZE, fric = 0.95, elas = 0, red = 150, green = 75, blue = 0):
-        super().__init__(xpos, ypos, width, height, fric, elas, red, green, blue)
+    def __init__(self, game, xpos, ypos, width=None, height=None, fric = 0.95, elas = 0, red = 150, green = 75, blue = 0):
+        width = width if width is not None else Game.blockSize # because wiidth height params can't see Game class
+        height = height if height is not None else Game.blockSize
+        super().__init__(game, xpos, ypos, width, height, fric, elas, red, green, blue)
 
+# basically a trapdoor that makes it passable if the obj on it presses down
 class FallThrough(Block): # if you're on it and press down, you fall through
-    def __init__(self, xpos, ypos, width = BLOCKSIZE, height = BLOCKSIZE/2, fric = 0.95, elas = 0, red = 0, green = 100, blue = 0):
-        super().__init__(xpos, ypos - height/2-1, width, height, fric, elas, red, green, blue)
+    def __init__(self, game, xpos, ypos, width=None, height=None, fric = 0.95, elas = 0, red = 0, green = 100, blue = 0):
+        width = width if width is not None else Game.blockSize # because wiidth height params can't see Game class
+        height = height if height is not None else Game.blockSize
+        super().__init__(game, xpos, ypos - height/4-1, width, height/2, fric, elas, red, green, blue)
 
     def onTop(self, pc):
         pc.ON_GROUND = pc.ON_GROUND_FRAMES
@@ -158,15 +158,15 @@ class FallThrough(Block): # if you're on it and press down, you fall through
     def update(self):
         self.PASSABLE -= 1
 
-# Jump Pad applies constant speed for as long as you're on it, which isn't how they actually
-# behave but it also doesn't take away from the game
+# Jump Pad applies constant speed for as long as you're on it, works for game ig
 class Conveyor(Block): #1-left, 2-right, 3-up, 4-down
     direction = 0
     speed = 0
-    def __init__(self, xpos, ypos, direct = 0, speedCon = 5):
+    def __init__(self, game, xpos, ypos, direct = 0, speedCon = 5):
         self.direction = direct
         self.speed = speedCon
-        super().__init__(xpos, ypos, width = BLOCKSIZE, height = BLOCKSIZE, fric = 0.92, elas = 0, red = 100, green = 100, blue = 0)
+        self.game = game
+        super().__init__(game, xpos, ypos, Game.blockSize, Game.blockSize, fric = 0.92, elas = 0, red = 100, green = 100, blue = 0)
 
     def onTop(self, pc):
         pc.ON_GROUND = pc.ON_GROUND_FRAMES
@@ -236,11 +236,14 @@ class Conveyor(Block): #1-left, 2-right, 3-up, 4-down
             case _:
                 pass
 
+# phys obj that can be controlled
 class Player(PhysChar):
     controls = []
 
-    def __init__(self, xpos, ypos, width = BLOCKSIZE, height = BLOCKSIZE, fric = 0.95, elas = 1, red = 0, green = 255, blue = 255):
-        super().__init__(xpos, ypos, width, height, fric, elas, red, green, blue) 
+    def __init__(self, game, xpos, ypos, width=None, height=None, fric = 0.95, elas = 1, red = 0, green = 255, blue = 255):
+        width = width if width is not None else Game.blockSize # because wiidth height params can't see Game class
+        height = height if height is not None else Game.blockSize
+        super().__init__(game, xpos, ypos, width, height, fric, elas, red, green, blue) 
         self.GRAVITY = 0.6
     
     def update(self, pressed_keys):
@@ -260,7 +263,7 @@ class Player(PhysChar):
         self.speedY += self.GRAVITY + self.ON_CONVEYORY # gravity
         super().update()
 
-class Enemy(pygame.sprite.Sprite):
+'''class Enemy(pygame.sprite.Sprite):
     def __init__(self):
         super(Enemy, self).__init__()
         self.surf = pygame.Surface((20, 10))
@@ -276,78 +279,174 @@ class Enemy(pygame.sprite.Sprite):
     def update(self):
         self.rect.move_ip(-self.speed, 0)
         if self.rect.right < 0:
-            self.kill()
+            self.kill()'''
 
-class level():
-    def __init__(self, level):
-        self.level = level
+# game main class, handles main loop and changig of states
+class Game():
 
-    def printLevel(self):
-        for row in self.level:
-            print(row)
+    screenWidth = 1920
+    screenHeight = 1080
+    frameRate = 30
+    blockSize = screenWidth/64
+    offset = blockSize/2
 
-# main
-# initialize pygame
-pygame.init()
-screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-running = True
+    def __init__(self, width = 1920, height = 1080, framerate = 30):
+        # define level constants, most of this can't be changed yet
+        if width / height != 16/9:
+            print("Warning: Nonstandard aspect ratio")
+            screenWidth = 1920
+            screenHeight = 1080
+        else:
+            screenWidth = width
+            screenHeight = height
+        if framerate != 30:
+            print("Warning: Framerate not 30fps! This can't be changed yet")
+            frameRate = 30
+        frameRate = framerate
+        blockSize = screenWidth/64
+        offset = blockSize/2
 
-all_sprites = pygame.sprite.Group()
-enemies = pygame.sprite.Group()
-blocks = pygame.sprite.Group()
-# fallThrough = pygame.sprite.Group()
+        # important initialize stuff
+        pygame.init()
+        self.screen = pygame.display.set_mode((screenWidth, screenHeight))
+        self.clock = pygame.time.Clock()
+        self.running = True
 
-Mobs = []
-BlockArr = []
+        # eventually should be main menu state
+        self.state = levelState("level.txt", self) # should be more comprehensive later
 
-x = OFFSET # places from the center, so offset by half blocksize (effectively x,y = 0)
-y = OFFSET
-# level is a list of strings, each string is a row of blocks
-# World is 1920x1080, each block is 30x30, so 64x36 blocks
-for row in level[LEVEL_CHOICE]:
-        for col in row:
-            if col == "B": #block
-                BlockArr.append(Block(x, y))
-            if col == "P": # player
-                Mobs.append(Player(x, y))
-            if col == "R": # Redbull
-                BlockArr.append(Block(x, y, BLOCKSIZE, BLOCKSIZE, 1.05, 0, 255, 0, 0))
-            if col == "S": # Sludge
-                BlockArr.append(Block(x, y, BLOCKSIZE, BLOCKSIZE, 0.85, 0, 0, 255, 0))
-            if col == "I": # Ice
-                BlockArr.append(Block(x, y, BLOCKSIZE, BLOCKSIZE, 1, 0, 0, 0, 255))
-            if col == "F": # Fallthrough
-                BlockArr.append(FallThrough(x, y))
-                # fallThrough.add(BlockArr[-1]) # -1 indicates last elem
-            if col == "J": # JumpPad
-                BlockArr.append(Block(x, y, BLOCKSIZE, BLOCKSIZE, 0.95, 1.7, 255, 0, 255))
-            if col == "G": # Granite
-                BlockArr.append(Block(x, y, BLOCKSIZE, BLOCKSIZE, 0.93, 0.3, 100, 100, 100))
-            if col == "<": # conveyor left
-                BlockArr.append(Conveyor(x, y, 1, 5)) #1 left, 2 right, 3 up, 4 down
-            if col == ">": # conveyor right
-                BlockArr.append(Conveyor(x, y, 2, 5))
-            if col == "^": # conveyor up
-                BlockArr.append(Conveyor(x, y, 3, 20))
-            if col == "V": #c onveyor down
-                BlockArr.append(Conveyor(x, y, 4, 10))
-            x += BLOCKSIZE # 60x60 is size of block
-        y += BLOCKSIZE
-        x = OFFSET
+    def run(self):
+        while self.running:
+            events = pygame.event.get()
+            for event in events:
+                if event.type == pygame.QUIT:
+                    self.running = False
 
-# can't do this in each obj, cuz it can't find the element inside the scope of the obj
-# the plus side is that we can use these arrays for calling the objects in the main loop
-for elements in BlockArr:
-    blocks.add(elements)
-    all_sprites.add(elements)
-for elements in Mobs:
-    all_sprites.add(elements)
+            self.state.handle_events(events)
+            self.state.update()
+            self.state.draw(self.screen)
 
+            pygame.display.flip()
+            self.clock.tick(Game.frameRate)
+
+    def changeState(self, state):
+        self.state = state
+
+    def quit(self):
+        pygame.quit()
+
+# default gamestate class, maybe add more later
+class GameState():
+    def __init__(self, game):
+        self.game = game
+    
+    def handleEvents(self):
+        raise NotImplementedError
+    
+    def update(self):
+        raise NotImplementedError
+
+    def draw(self, screen):
+        raise NotImplementedError
+
+# class to hold a level. Holds blocks and mobs and anything in a game instance
+class levelState(GameState):
+    
+    def __init__(self, levelFile, game):
+        super().__init__(game)  
+        # groups for rendering
+        self.game = game
+        self.all_sprites = pygame.sprite.Group()
+        self.enemies = pygame.sprite.Group()
+        self.blocks = pygame.sprite.Group()
+
+        # arrays for accessing
+        self.Mobs = []
+        self.BlockArr = []
+        self.parseLevel(levelFile)
+
+    def parseLevel(self, levelFile):
+        x = Game.offset # places from the center, so offset by half blocksize (effectively x,y = 0)
+        y = Game.offset
+        # World is 1920x1080, each block is 30x30, so 64x36 blocks
+        with open(levelFile, 'r') as file:
+            lines = file.readlines()
+        reading_level = False
+        for line in lines:
+            line = line.strip()  # Remove any leading/trailing whitespace
+            # Check if we've reached the "Main" layer or any other layer in the future
+            if line.lower() == "main":
+                reading_level = True
+                x = Game.offset
+                y = Game.offset
+                continue  # Skip to the next iteration
+            if reading_level:
+                if line:  # Make sure line is not empty
+                    for col in line:
+                        if col == "B":  # block
+                            self.BlockArr.append(Block(self.game, x, y))
+                        if col == "B": #block
+                            self.BlockArr.append(Block(self.game, x, y))
+                        if col == "P": # player
+                            self.Mobs.append(Player(self.game, x, y))
+                        if col == "R": # Redbull
+                            self.BlockArr.append(Block(self.game, x, y, Game.blockSize, Game.blockSize, 1.05, 0, 255, 0, 0))
+                        if col == "S": # Sludge
+                            self.BlockArr.append(Block(self.game, x, y, Game.blockSize, Game.blockSize, 0.85, 0, 0, 255, 0))
+                        if col == "I": # Ice
+                            self.BlockArr.append(Block(self.game, x, y, Game.blockSize, Game.blockSize, 1, 0, 0, 0, 255))
+                        if col == "F": # Fallthrough
+                            self.BlockArr.append(FallThrough(self.game, x, y))
+                        if col == "J": # JumpPad
+                            self.BlockArr.append(Block(self.game, x, y, Game.blockSize, Game.blockSize, 0.95, 1.7, 255, 0, 255))
+                        if col == "G": # Granite
+                            self.BlockArr.append(Block(self.game, x, y, Game.blockSize, Game.blockSize, 0.93, 0.3, 100, 100, 100))
+                        if col == "<": # conveyor left
+                            self.BlockArr.append(Conveyor(self.game, x, y, 1, 5)) #1 left, 2 right, 3 up, 4 down
+                        if col == ">": # conveyor right
+                            self.BlockArr.append(Conveyor(self.game, x, y, 2, 5))
+                        if col == "^": # conveyor up
+                            self.BlockArr.append(Conveyor(self.game, x, y, 3, 20))
+                        if col == "V": #c onveyor down
+                            self.BlockArr.append(Conveyor(self.game, x, y, 4, 10))
+                        x += Game.blockSize  # Move to the next block in the row
+                    y += Game.blockSize  # Move to the next row
+                    x = Game.offset  # Reset x to the start of the next row
+
+        # Add Blocks and Mobs to their respective groups after loading the level
+        # can't do this in each obj, cuz it can't find the element inside the scope of the obj
+        # the plus side is that we can use these arrays for calling the objects in the main loop
+        for elements in self.BlockArr:
+            self.blocks.add(elements)
+            self.all_sprites.add(elements)
+        for elements in self.Mobs:
+            self.all_sprites.add(elements)
+
+    def handle_events(self, events): # to be implemented
+        pass
+
+    def update(self):
+        pressed_keys = pygame.key.get_pressed()
+        self.Mobs[0].update(pressed_keys) # player physics update
+        # self.enemies.update() # to be implemented
+
+    def draw(self, screen):
+        screen.fill((0, 0, 0))
+        for entity in self.all_sprites:
+            screen.blit(entity.surf, entity.rect)
+
+
+if __name__ == "__main__":
+    buttonBasher = Game()
+    buttonBasher.run()
+    buttonBasher.quit()
+
+
+
+'''
 # events and timers
 ADDENEMY = pygame.USEREVENT + 1
 # pygame.time.set_timer(ADDENEMY, 250) # Temp removed 
-
-clock = pygame.time.Clock()
 
 # Main loop
 while running:
@@ -366,22 +465,7 @@ while running:
             enemies.add(new_enemy)
             all_sprites.add(new_enemy)
 
-
-    pressed_keys = pygame.key.get_pressed()
-    # fallThrough.update(pressed_keys, Mobs[0]) # fallthrough update
-    Mobs[0].update(pressed_keys) # player physics update
-    enemies.update()
-
-    # Fill the screen with black
-    screen.fill((0, 0, 0))
-
-    for entity in all_sprites:
-        screen.blit(entity.surf,entity.rect)
-
     if pygame.sprite.spritecollideany(Mobs[0], enemies):
         Mobs[0].kill()
         running = False
-
-    # Update the display
-    pygame.display.flip()
-    clock.tick(FRAMERATE) # framerate, 30 fps
+'''

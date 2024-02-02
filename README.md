@@ -7,36 +7,30 @@ game harder, such as by adjusting the game rules (gravity, input selection) or b
 hazards (enemies, lava, etc). You can also upgrade your character to improve your chances
 of survival.
 
-## Works Used
-
-https://www.pygame.org/project-Rect+Collision+Response-1061-.html
-- I used the rect collision response game to learn how to implement accurate and (hopefully) 
- performance efficient collision detection. I also borrowed the idea of formatting the level 
- in an array to speed up level design.
-https://realpython.com/pygame-a-primer/
-- I used this guide as an introduction to pygame. The first iteration of the game was
- functionally identical to what is in this guide, which defined movement, object + sprite
- placement, and the general gameplay loop.
-
-## Disclaimer (Surely not real legal protection)
-Note: This project serves only as a personal tutorial and offers no financial gain to myself
-or anyone involved. All respective work used will be obviously documented if used.
-
-
-## Current problems
-Should sprite groups be defined globally or in the main?
-Should objects be added to the sprite group on initialization?
-- How to handle removal from sprite group
-
 ## Todo
-- adaptable resolution, speed, framerate
-- transparency
-- liquid
-- ladders
-- doors
-- timer
-- move calc w/ surface (bounce more/less with jump)
-- buttons
-- wall jump, double jump
-- jump pads, not trampolines
-- directional conveyor belts
+- Base Features
+    - adaptable resolution, speed, framerate
+    - transparency for rendered objects
+    - Game class
+    - Game scene class
+    - level mask parser
+        - level file format
+- Objects (static)
+    - liquid base class
+        - lava
+        - water
+        - honey
+    - ladders
+- Objects (Scene)
+- Objects (dynamic)
+    - doors
+    - buttons
+    - elevator
+- UI
+    - timer
+    - status effect counter
+- Updates Existing
+    - directional conveyor belts (sideways)
+- Char features
+    - wall jump, double jump, hold wall
+
