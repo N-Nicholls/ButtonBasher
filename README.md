@@ -45,7 +45,7 @@ Todo: (extra)
 - modularized effects system (see vectors)
 - update documentation:
     - remove/change useless code
-    - standardize convention
-    - adopt standardized documentation
-    - customizeable controls, not hard coded
+    - standardize convention (camelcase or otherwise)
+    - adopt standardized documentation (doxygen?)
+    - customizeable controls, not hard coded (json config file)
     - movement ability separate from player (multiplayer later)
