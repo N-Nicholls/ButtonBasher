@@ -30,8 +30,8 @@ BBBB BBB                           RRRRRRRRRRR                 B
 B                                                              B
 B                                                              B
 B                                                         BBBBBB
-B                  B B                                         B
-B                  B B                                         B
-B                  B B BBBGGGSRJJJJ          ^^^^              B
-B                                                              B
+BWWWWWWWB          B B                                         B
+BWWWWWWWB          B B                                         B
+BWWWWWWWB          B B BBBGGGSRJJJJ          ^^^^              B
+BWWWWWWWB                                                      B
 BBBBBBBBBSSSIIIIIIISSSBBBBBBBBBBBBBBBBBBBBSSSSSBBBBBBBBBBBBBBBBB

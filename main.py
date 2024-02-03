@@ -13,36 +13,67 @@ from pygame.locals import (
 )
 
 
+class Liquid(pygame.sprite.Sprite):
+    viscosity = 1 # lowers speed by a constant amount (scalar)
+    buoyantForce = 0 # how much it pushes up
+    effectFrames = 1 # how long the multiplier lasts
+
+    def __init__(self, game, xpos, ypos, width=None, height=None, red = 0, green = 0, blue = 255, alpha = 100, vis = 1, buoy = 0):
+        super(Liquid, self).__init__()
+        width = width if width is not None else Game.blockSize
+        height = height if height is not None else Game.blockSize
+        self.surf = pygame.Surface((width, height))
+        self.surf.fill((red, green, blue))
+        self.rect = self.surf.get_rect(center = (xpos, ypos))
+        self.surf.set_alpha(alpha)
+        self.viscosity = vis
+        self.buoyantForce = buoy
+
+    def inside(self, pc):
+        pc.viscosityConst = self.viscosity
+        pc.buoyantConst = self.buoyantForce
+        pc.effectFrames = self.effectFrames
+        pc.ON_GROUND = pc.ON_GROUND_FRAMES
+
+
 class PhysChar(pygame.sprite.Sprite):
+    friction = 0.95 # constant multiplier, lowers by 5% per frame
+    elasticity = 0 # how much it deflects, 0 is no bounce, 1 is perfect bounce. Higher will add energy
+    PASSABLE = 0
+    PASSABLE_FRAMES = 15 # how long you can fall through a fallthrough block, roughly 1/2 sec @ 30 fps
+    
+    # dynamic tags
     maxSpeed = 10
     speedX = 0
     speedY = 0
     ON_GROUND = 0 # timer 3 to 0, if 0, then on ground
     ON_GROUND_FRAMES = 3 # since it carrys over a bit, you can do long/small jumps
-    friction = 0.95 # constant multiplier, lowers by 5% per frame
-    elasticity = 0 # how much it deflects, 0 is no bounce, 1 is perfect bounce. Higher will add energy
-    PASSABLE = 0
-    PASSABLE_FRAMES = 15 # how long you can fall through a fallthrough block, roughly 1/2 sec @ 30 fps
     JUMP_MULT = 1
-    GRAVITY = 0
+    GRAVITYy = 0.6 #vectorized
+    GRAVITYx = 0
     ON_CONVEYORX = 0
     ON_CONVEYORY = 0
+    mass = 1 # used for gravity and buoyancy
+    viscosityConst = 1 # how much it slows you down
+    buoyantConst = 0 # how much it pushes you up
+    effectFrames = 1 # how long the multiplier lasts
 
     effects = [ 
-        ON_GROUND, JUMP_MULT, GRAVITY, ON_CONVEYORX, ON_CONVEYORY,
+        ON_GROUND, JUMP_MULT, GRAVITYy, GRAVITYx, ON_CONVEYORX, ON_CONVEYORY, viscosityConst, buoyantConst,
     ]
 
-    def __init__(self, game, xpos = 0, ypos = 0, width = None, height = None, fric = 0.95, elas = 0, red = 255, green = 255, blue = 255):
+    def __init__(self, game, xpos = 0, ypos = 0, width = None, height = None, fric = 0.95, elas = 0, kg = 1, red = 255, green = 255, blue = 255):
         super(PhysChar, self).__init__()
         self.game = game
-        width = width if width is not None else Game.blockSize # because wiidth height params can't see Game class
-        height = height if height is not None else Game.blockSize
+        self.width = width if width is not None else Game.blockSize # because wiidth height params can't see Game class
+        self.height = height if height is not None else Game.blockSize
 
         self.surf = pygame.Surface((width, height))
         self.surf.fill((red, green, blue))
         self.rect = self.surf.get_rect(center = (xpos, ypos))
         self.friction = fric
         self.elasticity = elas
+        self.mass = kg # note: this does not mean the character is 1 fucking kilogram
 
     # "abstract" functions for dynamic objects
     def onTop(self, pc): # called by block, parameter is player
@@ -57,9 +88,9 @@ class PhysChar(pygame.sprite.Sprite):
 
     def move(self, dx, dy):
         if dx != 0:
-            self.move_single_axis(dx, 0)
+            self.move_single_axis(dx*self.viscosityConst, 0)
         if dy != 0:
-            self.move_single_axis(0, dy)
+            self.move_single_axis(0, dy*self.viscosityConst)
 
     def move_single_axis(self, dx, dy):
         
@@ -73,6 +104,10 @@ class PhysChar(pygame.sprite.Sprite):
             self.ON_GROUND -= 1
         self.ON_CONVEYORX = 0
         self.ON_CONVEYORY = 0
+        if self.effectFrames > 0:
+            self.effectFrames -= 1
+        self.buoyantConst = 0
+        self.viscosityConst = 1
 
         # collision w/ blocks and walls
         for block in self.game.state.blocks:
@@ -105,6 +140,12 @@ class PhysChar(pygame.sprite.Sprite):
                         block.onBottom(self)
             else:
                 block.update()
+
+        for liquid in self.game.state.liquids:
+            if self.rect.colliderect(liquid.rect):
+                liquid.inside(self)
+
+
         '''if self.rect.left < 0: # moving left
             self.rect.left = 0
             self.speedX += 1
@@ -134,17 +175,17 @@ class PhysChar(pygame.sprite.Sprite):
             self.speedY = 0
         
 class Block(PhysChar): # can be collided with, cannot collide itself (won't move)
-    def __init__(self, game, xpos, ypos, width=None, height=None, fric = 0.95, elas = 0, red = 150, green = 75, blue = 0):
+    def __init__(self, game, xpos, ypos, width=None, height=None, fric = 0.95, elas = 0, kg = 1, red = 150, green = 75, blue = 0):
         width = width if width is not None else Game.blockSize # because wiidth height params can't see Game class
         height = height if height is not None else Game.blockSize
-        super().__init__(game, xpos, ypos, width, height, fric, elas, red, green, blue)
+        super().__init__(game, xpos, ypos, width, height, fric, elas, kg, red, green, blue)
 
 # basically a trapdoor that makes it passable if the obj on it presses down
 class FallThrough(Block): # if you're on it and press down, you fall through
-    def __init__(self, game, xpos, ypos, width=None, height=None, fric = 0.95, elas = 0, red = 0, green = 100, blue = 0):
+    def __init__(self, game, xpos, ypos, width=None, height=None, fric = 0.95, elas = 0, kg = 1, red = 0, green = 100, blue = 0):
         width = width if width is not None else Game.blockSize # because wiidth height params can't see Game class
         height = height if height is not None else Game.blockSize
-        super().__init__(game, xpos, ypos - height/4-1, width, height/2, fric, elas, red, green, blue)
+        super().__init__(game, xpos, ypos - height/4-1, width, height/2, fric, elas, kg, red, green, blue)
 
     def onTop(self, pc):
         pc.ON_GROUND = pc.ON_GROUND_FRAMES
@@ -162,11 +203,11 @@ class FallThrough(Block): # if you're on it and press down, you fall through
 class Conveyor(Block): #1-left, 2-right, 3-up, 4-down
     direction = 0
     speed = 0
-    def __init__(self, game, xpos, ypos, direct = 0, speedCon = 5):
+    def __init__(self, game, xpos, ypos, direct = 0, speedCon = 5, kg = 1):
         self.direction = direct
         self.speed = speedCon
         self.game = game
-        super().__init__(game, xpos, ypos, Game.blockSize, Game.blockSize, fric = 0.92, elas = 0, red = 100, green = 100, blue = 0)
+        super().__init__(game, xpos, ypos, Game.blockSize, Game.blockSize, fric = 0.92, elas = 0, kg = 1, red = 100, green = 100, blue = 0)
 
     def onTop(self, pc):
         pc.ON_GROUND = pc.ON_GROUND_FRAMES
@@ -240,15 +281,14 @@ class Conveyor(Block): #1-left, 2-right, 3-up, 4-down
 class Player(PhysChar):
     controls = []
 
-    def __init__(self, game, xpos, ypos, width=None, height=None, fric = 0.95, elas = 1, red = 0, green = 255, blue = 255):
+    def __init__(self, game, xpos, ypos, width=None, height=None, fric = 0.95, elas = 1, kg = 1, red = 0, green = 255, blue = 255):
         width = width if width is not None else Game.blockSize # because wiidth height params can't see Game class
         height = height if height is not None else Game.blockSize
-        super().__init__(game, xpos, ypos, width, height, fric, elas, red, green, blue) 
-        self.GRAVITY = 0.6
+        super().__init__(game, xpos, ypos, width, height, fric, elas, kg, red, green, blue) 
     
     def update(self, pressed_keys):
         # movement
-        self.printStuff()
+        self.printStuff() # one frame behind, shouldn't make a difference I think
         self.controls = pressed_keys # this might be very stupid, but it means obj can see what the user is pressing
         if self.controls[K_DOWN] and self.speedY < self.maxSpeed:
             self.speedY += 1
@@ -259,8 +299,8 @@ class Player(PhysChar):
         if self.controls[K_RIGHT] and self.speedX < self.maxSpeed:
             self.speedX += 1
 
-        self.speedX += self.ON_CONVEYORX
-        self.speedY += self.GRAVITY + self.ON_CONVEYORY # gravity
+        self.speedX += (self.GRAVITYx)*self.mass + self.ON_CONVEYORX # additives to speed
+        self.speedY += (self.GRAVITYy - self.buoyantConst)*self.mass + self.ON_CONVEYORY# note: buoyant force can't be directional, onyl down
         super().update()
 
 '''class Enemy(pygame.sprite.Sprite):
@@ -280,6 +320,7 @@ class Player(PhysChar):
         self.rect.move_ip(-self.speed, 0)
         if self.rect.right < 0:
             self.kill()'''
+
 
 # game main class, handles main loop and changig of states
 class Game():
@@ -359,10 +400,12 @@ class levelState(GameState):
         self.all_sprites = pygame.sprite.Group()
         self.enemies = pygame.sprite.Group()
         self.blocks = pygame.sprite.Group()
+        self.liquids = pygame.sprite.Group()
 
         # arrays for accessing
         self.Mobs = []
         self.BlockArr = []
+        self.LiquidArr = []
         self.parseLevel(levelFile)
 
     def parseLevel(self, levelFile):
@@ -385,30 +428,30 @@ class levelState(GameState):
                     for col in line:
                         if col == "B":  # block
                             self.BlockArr.append(Block(self.game, x, y))
-                        if col == "B": #block
-                            self.BlockArr.append(Block(self.game, x, y))
                         if col == "P": # player
                             self.Mobs.append(Player(self.game, x, y))
                         if col == "R": # Redbull
-                            self.BlockArr.append(Block(self.game, x, y, Game.blockSize, Game.blockSize, 1.05, 0, 255, 0, 0))
+                            self.BlockArr.append(Block(self.game, x, y, Game.blockSize, Game.blockSize, 1.05, 0, 1, 255, 0, 0))
                         if col == "S": # Sludge
-                            self.BlockArr.append(Block(self.game, x, y, Game.blockSize, Game.blockSize, 0.85, 0, 0, 255, 0))
+                            self.BlockArr.append(Block(self.game, x, y, Game.blockSize, Game.blockSize, 0.85, 0, 1, 0, 255, 0))
                         if col == "I": # Ice
-                            self.BlockArr.append(Block(self.game, x, y, Game.blockSize, Game.blockSize, 1, 0, 0, 0, 255))
+                            self.BlockArr.append(Block(self.game, x, y, Game.blockSize, Game.blockSize, 1, 0, 1, 0, 0, 255))
                         if col == "F": # Fallthrough
                             self.BlockArr.append(FallThrough(self.game, x, y))
                         if col == "J": # JumpPad
-                            self.BlockArr.append(Block(self.game, x, y, Game.blockSize, Game.blockSize, 0.95, 1.7, 255, 0, 255))
+                            self.BlockArr.append(Block(self.game, x, y, Game.blockSize, Game.blockSize, 0.95, 1.7, 1, 255, 0, 255))
                         if col == "G": # Granite
-                            self.BlockArr.append(Block(self.game, x, y, Game.blockSize, Game.blockSize, 0.93, 0.3, 100, 100, 100))
+                            self.BlockArr.append(Block(self.game, x, y, Game.blockSize, Game.blockSize, 0.93, 0.3, 1, 100, 100, 100))
                         if col == "<": # conveyor left
-                            self.BlockArr.append(Conveyor(self.game, x, y, 1, 5)) #1 left, 2 right, 3 up, 4 down
+                            self.BlockArr.append(Conveyor(self.game, x, y, 1, 5, 1)) #1 left, 2 right, 3 up, 4 down
                         if col == ">": # conveyor right
-                            self.BlockArr.append(Conveyor(self.game, x, y, 2, 5))
+                            self.BlockArr.append(Conveyor(self.game, x, y, 2, 5, 1))
                         if col == "^": # conveyor up
-                            self.BlockArr.append(Conveyor(self.game, x, y, 3, 20))
+                            self.BlockArr.append(Conveyor(self.game, x, y, 3, 20, 1))
                         if col == "V": #c onveyor down
-                            self.BlockArr.append(Conveyor(self.game, x, y, 4, 10))
+                            self.BlockArr.append(Conveyor(self.game, x, y, 4, 10, 1))
+                        if col == "W":
+                            self.LiquidArr.append(Liquid(self.game, x, y, Game.blockSize, Game.blockSize, 0, 70, 255, 70, 0.5, 0.58))
                         x += Game.blockSize  # Move to the next block in the row
                     y += Game.blockSize  # Move to the next row
                     x = Game.offset  # Reset x to the start of the next row
@@ -420,6 +463,9 @@ class levelState(GameState):
             self.blocks.add(elements)
             self.all_sprites.add(elements)
         for elements in self.Mobs:
+            self.all_sprites.add(elements)
+        for elements in self.LiquidArr:
+            self.liquids.add(elements)
             self.all_sprites.add(elements)
 
     def handle_events(self, events): # to be implemented
@@ -435,13 +481,10 @@ class levelState(GameState):
         for entity in self.all_sprites:
             screen.blit(entity.surf, entity.rect)
 
-
 if __name__ == "__main__":
     buttonBasher = Game()
     buttonBasher.run()
     buttonBasher.quit()
-
-
 
 '''
 # events and timers
