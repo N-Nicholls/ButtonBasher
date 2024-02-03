@@ -12,7 +12,8 @@ from pygame.locals import (
     QUIT,
 )
 
-
+# note: liquid modifies your new move speed, but doesn't actively slow you down like frictio
+# because then you stop moving after awhile and gravity doesn't work. So you maintain speed inside
 class Liquid(pygame.sprite.Sprite):
     viscosity = 1 # lowers speed by a constant amount (scalar)
     buoyantForce = 0 # how much it pushes up
@@ -33,7 +34,7 @@ class Liquid(pygame.sprite.Sprite):
         pc.viscosityConst = self.viscosity
         pc.buoyantConst = self.buoyantForce
         pc.effectFrames = self.effectFrames
-        pc.ON_GROUND = pc.ON_GROUND_FRAMES
+        pc.IN_LIQUID = 1
 
 
 class PhysChar(pygame.sprite.Sprite):
@@ -48,6 +49,7 @@ class PhysChar(pygame.sprite.Sprite):
     speedY = 0
     ON_GROUND = 0 # timer 3 to 0, if 0, then on ground
     ON_GROUND_FRAMES = 3 # since it carrys over a bit, you can do long/small jumps
+    IN_LIQUID = 0
     JUMP_MULT = 1
     GRAVITYy = 0.6 #vectorized
     GRAVITYx = 0
@@ -88,9 +90,9 @@ class PhysChar(pygame.sprite.Sprite):
 
     def move(self, dx, dy):
         if dx != 0:
-            self.move_single_axis(dx*self.viscosityConst, 0)
+            self.move_single_axis(dx, 0)
         if dy != 0:
-            self.move_single_axis(0, dy*self.viscosityConst)
+            self.move_single_axis(0, dy)
 
     def move_single_axis(self, dx, dy):
         
@@ -108,6 +110,7 @@ class PhysChar(pygame.sprite.Sprite):
             self.effectFrames -= 1
         self.buoyantConst = 0
         self.viscosityConst = 1
+        self.IN_LIQUID = 0
 
         # collision w/ blocks and walls
         for block in self.game.state.blocks:
@@ -124,7 +127,7 @@ class PhysChar(pygame.sprite.Sprite):
                         self.rect.left = block.rect.right
                         self.speedX = -self.speedX*avgElas # bounce
                         if math.fabs(self.speedY) < self.maxSpeed*1.5: # only lets you get 1.5 times speed
-                            self.speedY *= block.friction # friction
+                            self.speedY *= block.friction  # friction
                         block.onRight(self)
                     if dy > 0: # moving down
                         self.rect.bottom = block.rect.top
@@ -166,8 +169,8 @@ class PhysChar(pygame.sprite.Sprite):
 
     def update(self):
         # maintains movement
-        self.move(self.speedX, 0)
-        self.move(0, self.speedY)
+        self.move(self.speedX*self.viscosityConst, 0)
+        self.move(0, self.speedY* self.viscosityConst)
 
         if math.fabs(self.speedX) < 0.2: # stop doing stupid calculations
             self.speedX = 0
@@ -292,8 +295,10 @@ class Player(PhysChar):
         self.controls = pressed_keys # this might be very stupid, but it means obj can see what the user is pressing
         if self.controls[K_DOWN] and self.speedY < self.maxSpeed:
             self.speedY += 1
-        if self.controls[K_UP] and self.speedY > -self.maxSpeed and self.ON_GROUND > 0:
+        if self.controls[K_UP] and self.speedY > -self.maxSpeed and self.ON_GROUND > 0 and self.IN_LIQUID == 0:
             self.speedY -= math.fabs(10 * self.JUMP_MULT)
+        if self.controls[K_UP] and self.speedY > -self.maxSpeed and self.IN_LIQUID == 1:
+            self.speedY -= 1
         if self.controls[K_LEFT] and self.speedX > -self.maxSpeed:
             self.speedX -= 1
         if self.controls[K_RIGHT] and self.speedX < self.maxSpeed:
@@ -450,8 +455,12 @@ class levelState(GameState):
                             self.BlockArr.append(Conveyor(self.game, x, y, 3, 20, 1))
                         if col == "V": #c onveyor down
                             self.BlockArr.append(Conveyor(self.game, x, y, 4, 10, 1))
-                        if col == "W":
+                        if col == "W": # water
                             self.LiquidArr.append(Liquid(self.game, x, y, Game.blockSize, Game.blockSize, 0, 70, 255, 70, 0.5, 0.58))
+                        if col == "L": # ladder
+                            self.LiquidArr.append(Liquid(self.game, x, y, Game.blockSize, Game.blockSize, 255, 255, 0, 150, 1, 0.6))
+                        if col == "C": # cum
+                            self.LiquidArr.append(Liquid(self.game, x, y, Game.blockSize, Game.blockSize, 255, 255, 255, 150, 0.2, 0.7))
                         x += Game.blockSize  # Move to the next block in the row
                     y += Game.blockSize  # Move to the next row
                     x = Game.offset  # Reset x to the start of the next row

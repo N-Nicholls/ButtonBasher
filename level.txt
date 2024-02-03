@@ -14,11 +14,11 @@ B                                       S S R R                B
 B                   BBBB                S S R R                B
 B                                                              B
 B                                                              B
-B                                                              B
-B                                                              B
-B                                P                             B
-B                                                              B
-B           BBBB                                               B
+BCCCCCCCCCCCCCCC                                               B
+BCCCCCCCCCCCCCCC                                               B
+BCCCCCCCCCCCCCCC  P                             B
+BCCCCCCCCCCCCCCC                                               B
+BBBBBB^^^^^BBBBB                                               B
 B                                                              B
 B                              BBBBB   BJJJJJJBBB              B
 B                                                              B
@@ -29,9 +29,9 @@ B                                                              B
 BBBB BBB                           RRRRRRRRRRR                 B
 B                                                              B
 B                                                              B
-B                                                         BBBBBB
-BWWWWWWWB          B B                                         B
-BWWWWWWWB          B B                                         B
-BWWWWWWWB          B B BBBGGGSRJJJJ          ^^^^              B
-BWWWWWWWB                                                      B
+B                                                        LBBBBBB
+BWWWWWWWB          B B                                   L     B
+BWWWWWWWB          B B                                   L     B
+BWWWWWWWB          B B BBBGGGSRJJJJ          ^^^^        L     B
+BWWWWWWWB                                                L     B
 BBBBBBBBBSSSIIIIIIISSSBBBBBBBBBBBBBBBBBBBBSSSSSBBBBBBBBBBBBBBBBB
