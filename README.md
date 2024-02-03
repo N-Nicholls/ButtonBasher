@@ -34,3 +34,13 @@ of survival.
 - Char features
     - wall jump, double jump, hold wall
 
+Todo: (extra)
+- Vector based movement (pos, vel, acc)
+- streamlined physics system 
+- modularized effects system (see vectors)
+- update documentation:
+    - remove/change useless code
+    - standardize convention
+    - adopt standardized documentation
+    - customizeable controls, not hard coded
+    - movement ability separate from player (multiplayer later)
