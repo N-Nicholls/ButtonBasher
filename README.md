@@ -11,7 +11,9 @@ of survival.
 - Base Features
     - adaptable resolution, speed, framerate
     - transparency for rendered objects
-    - level mask w/ updated parser
+    - Game class
+    - Game scene class
+    - level mask parser
         - level file format
 - Objects (static)
     - liquid base class
@@ -29,7 +31,6 @@ of survival.
     - status effect counter
 - Updates Existing
     - directional conveyor belts (sideways)
-    - update conveyor bottom collision for upwards conveyor
 - Char features
     - wall jump, double jump, hold wall
 - scenes
