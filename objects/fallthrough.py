@@ -13,10 +13,10 @@ class FallThrough(Block): # if you're on it and press down, you fall through
         pc.ON_GROUND = pc.ON_GROUND_FRAMES
         pc.JUMP_MULT = 1 + self.elasticity
         if pc.controls[K_DOWN] and pc.ON_GROUND > 0:
-            self.PASSABLE = self.PASSABLE_FRAMES
+            self.passable = self.passable_frames
         else:
-            if self.PASSABLE != 0:
-                self.PASSABLE -= 1
+            if self.passable != 0:
+                self.passable -= 1
 
     def update(self):
-        self.PASSABLE -= 1
+        self.passable -= 1

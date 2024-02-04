@@ -1,13 +1,8 @@
 import pygame
 import math
+from core.vector import Vector
 
 class PhysChar(pygame.sprite.Sprite):
-    friction = 0.95 # constant multiplier, lowers by 5% per frame
-    elasticity = 0 # how much it deflects, 0 is no bounce, 1 is perfect bounce. Higher will add energy
-    PASSABLE = 0
-    PASSABLE_FRAMES = 15 # how long you can fall through a fallthrough block, roughly 1/2 sec @ 30 fps
-    
-    # dynamic tags
     maxSpeed = 10
     speedX = 0
     speedY = 0
@@ -33,13 +28,14 @@ class PhysChar(pygame.sprite.Sprite):
         self.game = game
         self.width = width if width is not None else game.block_size # because wiidth height params can't see Game class
         self.height = height if height is not None else game.block_size
-
         self.surf = pygame.Surface((self.width, self.height))
         self.surf.fill((red, green, blue))
         self.rect = self.surf.get_rect(center = (xpos, ypos))
         self.friction = fric
         self.elasticity = elas
         self.mass = kg # note: this does not mean the character is 1 fucking kilogram
+        self.passable = 0
+        self.passable_frames = game.frame_rate/2 # roughly 1/2 sec
 
     # "abstract" functions for dynamic objects
     def onTop(self, pc): # called by block, parameter is player
@@ -78,7 +74,7 @@ class PhysChar(pygame.sprite.Sprite):
 
         # collision w/ blocks and walls
         for block in self.game.state.blocks:
-            if block.PASSABLE <= 0:
+            if block.passable <= 0:
                 if self.rect.colliderect(block.rect):
                     avgElas = (self.elasticity*block.elasticity)/2
                     if dx > 0: # moving right 
