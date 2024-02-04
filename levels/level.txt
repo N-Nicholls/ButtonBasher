@@ -1,4 +1,4 @@
-Main
+main
 BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB
 B                                                              B
 B                                                              B

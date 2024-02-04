@@ -9,19 +9,13 @@ of survival.
 
 ## Todo
 - Base Features
-    - adaptable resolution, speed, framerate
-    - transparency for rendered objects
-    - Game class
-    - Game scene class
-    - level mask parser
-        - level file format
+    - level file format (mask)
+    - json controls read, enemy import when added
 - Objects (static)
     - liquid base class
         - lava
-        - water
-        - honey
-    - ladders
 - Objects (Scene)
+    - textures
 - Objects (dynamic)
     - doors
     - buttons
@@ -29,6 +23,10 @@ of survival.
 - UI
     - timer
     - status effect counter
+- Extra
+    - sound effects
+    - music track
+        -dynamism
 - Updates Existing
     - directional conveyor belts (sideways)
 - Char features
@@ -37,7 +35,8 @@ of survival.
     - main menu
     - pause menu
     - settings
-    - other
+
+Note: Remember that code is modularized in folders, connect imports when adding and modifying!!!
 
 Todo: (extra)
 - Vector based movement (pos, vel, acc)
