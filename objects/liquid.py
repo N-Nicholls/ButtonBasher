@@ -3,6 +3,7 @@ import pygame
 # note: liquid modifies your new move speed, but doesn't actively slow you down like frictio
 # because then you stop moving after awhile and gravity doesn't work. So you maintain speed inside
 class Liquid(pygame.sprite.Sprite):
+    """
     viscosity = 1 # lowers speed by a constant amount (scalar)
     buoyantForce = 0 # how much it pushes up
     effectFrames = 1 # how long the multiplier lasts
@@ -20,4 +21,4 @@ class Liquid(pygame.sprite.Sprite):
         pc.viscosityConst = self.viscosity
         pc.buoyantConst = self.buoyantForce
         pc.effectFrames = self.effectFrames
-        pc.IN_LIQUID = 1
+        pc.IN_LIQUID = 1"""

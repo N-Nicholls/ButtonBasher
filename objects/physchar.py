@@ -3,74 +3,96 @@ import math
 from core.vector import Vector
 
 class PhysChar(pygame.sprite.Sprite):
-    maxSpeed = 10
-    speedX = 0
-    speedY = 0
-    ON_GROUND = 0 # timer 3 to 0, if 0, then on ground
-    ON_GROUND_FRAMES = 3 # since it carrys over a bit, you can do long/small jumps
-    IN_LIQUID = 0
-    JUMP_MULT = 1
-    GRAVITYy = 0.6 #vectorized
-    GRAVITYx = 0
-    ON_CONVEYORX = 0
-    ON_CONVEYORY = 0
-    mass = 1 # used for gravity and buoyancy
-    viscosityConst = 1 # how much it slows you down
-    buoyantConst = 0 # how much it pushes you up
-    effectFrames = 1 # how long the multiplier lasts
-
-    effects = [ 
-        ON_GROUND, JUMP_MULT, GRAVITYy, GRAVITYx, ON_CONVEYORX, ON_CONVEYORY, viscosityConst, buoyantConst,
-    ]
-
-    def __init__(self, game, xpos = 0, ypos = 0, width = None, height = None, fric = 0.95, elas = 0, kg = 1, red = 255, green = 255, blue = 255):
+    def __init__(self, game, xpos = 0, ypos = 0, width = None, height = None, fric = 0.95, elas = 1, red = 0, green = 255, blue = 255):
         super(PhysChar, self).__init__()
         self.game = game
-        self.width = width if width is not None else game.block_size # because wiidth height params can't see Game class
+        # rendering
+        self.width = width if width is not None else game.block_size # because width height params can't see Game class
         self.height = height if height is not None else game.block_size
         self.surf = pygame.Surface((self.width, self.height))
         self.surf.fill((red, green, blue))
         self.rect = self.surf.get_rect(center = (xpos, ypos))
+        # physics
+        self.velocity = Vector(0, 0)
         self.friction = fric
         self.elasticity = elas
-        self.mass = kg # note: this does not mean the character is 1 fucking kilogram
         self.passable = 0
-        self.passable_frames = game.frame_rate/2 # roughly 1/2 sec
+        self.on_ground = 0
+        self.in_liquid = False
+        # effects
+        self.gravity = Vector(0, 0.6)
 
-    # "abstract" functions for dynamic objects
-    def onTop(self, pc): # called by block, parameter is player
-        pc.ON_GROUND = pc.ON_GROUND_FRAMES
-        pc.JUMP_MULT = 1 + self.elasticity
+    def update(self):
+        # effects
+        self.velocity += self.gravity
+        if self.on_ground > 0:
+            self.on_ground -= 1
+        self.in_liquid = False
+
+        # optimises calculations
+        if math.fabs(self.velocity.x) < 0.3:
+            self.velocity.x = 0
+        if math.fabs(self.velocity.y) < 0.3:
+            self.velocity.y = 0
+
+        # maintains movement
+        self.move(self.velocity.x, 0)
+        self.move(0, self.velocity.y)
+
+        
+
+    # collision stuff per direction individually
+    def move(self, dx, dy):
+        self.moveSingleAxis(dx, 0)
+        self.moveSingleAxis(0, dy)
+
+    def moveSingleAxis(self, dx, dy):
+        self.rect.x += dx
+        self.rect.y += dy
+
+        for block in self.game.state.blocks:
+            if self.rect.colliderect(block.rect) and block.passable == 0:
+                    if dx > 0: # moving right
+                        self.rect.right = block.rect.left
+                        block.onLeft(self)
+                    if dx < 0: # moving left
+                        self.rect.left = block.rect.right
+                        block.onRight(self)
+                    if dy > 0: # moving down
+                        self.rect.bottom = block.rect.top
+                        block.onTop(self)
+                    if dy < 0: # moving up
+                        self.rect.top = block.rect.bottom
+                        block.onBottom(self)
+
+
+    def onTop(self, pc):
+        pc.on_ground = 3
+        pc.jump_mult = self.elasticity + pc.elasticity
+        pc.velocity = Vector(pc.velocity.x, -pc.velocity.y*self.elasticity)*self.friction
+        pass
     def onBottom(self, pc):
+        pc.velocity = Vector(pc.velocity.x, -pc.velocity.y*self.elasticity)*self.friction
         pass
     def onLeft(self, pc):
+        pc.velocity = Vector(-pc.velocity.x*self.elasticity, pc.velocity.y)*self.friction
         pass
     def onRight(self, pc):
-        pass
+        pc.velocity = Vector(-pc.velocity.x*self.elasticity, pc.velocity.y)*self.friction
 
-    def move(self, dx, dy):
-        if dx != 0:
-            self.moveSingleAxis(dx, 0)
-        if dy != 0:
-            self.moveSingleAxis(0, dy)
 
+    
+
+
+    
+
+
+    """
     def moveSingleAxis(self, dx, dy):
         
         # Move the rect
         self.rect.x += dx
         self.rect.y += dy
-
-        # Tag controlling if on ground. Every frame lowers by 1, if 0, then on ground
-        # total frames allowed depends on ON_GROUND_FRAMES
-        if self.ON_GROUND > 0:
-            self.ON_GROUND -= 1
-        self.ON_CONVEYORX = 0
-        self.ON_CONVEYORY = 0
-        if self.effectFrames > 0:
-            self.effectFrames -= 1
-        self.buoyantConst = 0
-        self.viscosityConst = 1
-        self.IN_LIQUID = 0
 
         # collision w/ blocks and walls
         for block in self.game.state.blocks:
@@ -79,27 +101,19 @@ class PhysChar(pygame.sprite.Sprite):
                     avgElas = (self.elasticity*block.elasticity)/2
                     if dx > 0: # moving right 
                         self.rect.right = block.rect.left
-                        self.speedX = -self.speedX*avgElas# bounce
-                        if math.fabs(self.speedY) < self.maxSpeed*1.5: # only lets you get 1.5 times speed
-                            self.speedY *= block.friction # friction
+                        self.velocity += Vector(-self.velocity.x*avgElas*block.friction, 0) # bounce
                         block.onLeft(self)
                     if dx < 0: # moving left
                         self.rect.left = block.rect.right
-                        self.speedX = -self.speedX*avgElas # bounce
-                        if math.fabs(self.speedY) < self.maxSpeed*1.5: # only lets you get 1.5 times speed
-                            self.speedY *= block.friction  # friction
+                        self.velocity += Vector(-self.velocity.x*avgElas*block.friction, 0) # bounce
                         block.onRight(self)
                     if dy > 0: # moving down
                         self.rect.bottom = block.rect.top
-                        self.speedY = -self.speedY*avgElas # stop falling, makes it so you don't bounce
-                        if math.fabs(self.speedX) < self.maxSpeed*1.5: # only lets you get 1.5 times speed
-                            self.speedX *= block.friction # friction
+                        self.velocity += Vector(0, -self.velocity.y*avgElas*block.friction) # stop falling, makes it so you don't bounce
                         block.onTop(self)
                     if dy < 0: # moving up
                         self.rect.top = block.rect.bottom
-                        self.speedY = -self.speedY*avgElas # bounce
-                        if math.fabs(self.speedX) < self.maxSpeed*1.5: # only lets you get 1.5 times speed
-                            self.speedX *= block.friction # friction
+                        self.velocity += Vector(0, -self.velocity.y*avgElas*block.friction) # bounce
                         block.onBottom(self)
             else:
                 block.update()
@@ -123,16 +137,28 @@ class PhysChar(pygame.sprite.Sprite):
             self.speedY -= 1
             self.ON_GROUND = self.ON_GROUND_FRAMES # reset on ground timer'''
 
-    # for debugging, prints at start of a frame, so before movement inputs
-    def printStuff(self):
-        print("x: " + str(self.rect.x) + " y: " + str(self.rect.y) + " speedX: " + str(self.speedX) + " speedY: " + str(self.speedY) + " onGround: " + str(self.ON_GROUND > 0))
 
-    def update(self):
+
+    def update(self):  
+        # Tag controlling if on ground. Every frame lowers by 1, if 0, then on ground
+        # total frames allowed depends on ON_GROUND_FRAMES
+        if self.ON_GROUND > 0:
+            self.ON_GROUND -= 1
+        self.ON_CONVEYORX = 0
+        self.ON_CONVEYORY = 0
+        if self.effectFrames > 0:
+            self.effectFrames -= 1
+        self.buoyantConst = 0
+        self.viscosityConst = 1
+        self.IN_LIQUID = 0
+        self.JUMP_MULT = 1
+
         # maintains movement
-        self.move(self.speedX*self.viscosityConst, 0)
-        self.move(0, self.speedY* self.viscosityConst)
+        self.move(self.velocity.x, 0)
+        self.move(0, self.velocity.y)
 
-        if math.fabs(self.speedX) < 0.2: # stop doing stupid calculations
-            self.speedX = 0
-        if math.fabs(self.speedY) < 0.2:
-            self.speedY = 0
+        # optimises calculations
+        if math.fabs(self.velocity.x) < 0.2:
+            self.velocity.x = 0
+        if math.fabs(self.velocity.y) < 0.2:
+            self.velocity.y = 0"""

@@ -16,7 +16,7 @@ B                                                              B
 B                                                              B
 BCCCCCCCCCCCCCCC                                               B
 BCCCCCCCCCCCCCCC                                               B
-BCCCCCCCCCCCCCCC  P                             B
+BCCCCCCCCCCCCCCC  P                                            B
 BCCCCCCCCCCCCCCC                                               B
 BBBBBB^^^^^BBBBB                                               B
 B                                                              B
