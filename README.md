@@ -8,18 +8,18 @@ hazards (enemies, lava, etc). You can also upgrade your character to improve you
 of survival.
 
 ## Todo
-- Base Features
-    - level file format (mask)
-    - json controls read, enemy import when added
 - Objects (static)
-    - liquid base class
-        - lava
+    - lava
 - Objects (Scene)
     - textures
 - Objects (dynamic)
     - doors
     - buttons
     - elevator
+    - enemies (toad)
+    - enemies (mimic)
+    - enemies (shooting)
+    - enemies (roblox zombie)
 - UI
     - timer
     - status effect counter
@@ -27,8 +27,6 @@ of survival.
     - sound effects
     - music track
         -dynamism
-- Updates Existing
-    - directional conveyor belts (sideways)
 - Char features
     - wall jump, double jump, hold wall
 - scenes
@@ -36,15 +34,6 @@ of survival.
     - pause menu
     - settings
 
-Note: Remember that code is modularized in folders, connect imports when adding and modifying!!!
-
 Todo: (extra)
-- Vector based movement (pos, vel, acc)
-- streamlined physics system 
-- modularized effects system (see vectors)
 - update documentation:
-    - remove/change useless code
-    - standardize convention (camelcase or otherwise)
     - adopt standardized documentation (doxygen?)
-    - customizeable controls, not hard coded (json config file)
-    - movement ability separate from player (multiplayer later)

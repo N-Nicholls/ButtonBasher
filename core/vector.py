@@ -49,6 +49,10 @@ class Vector:
         return self.x * other.y - self.y * other.x
     def distance_to(self, other):
         return abs(self - other)
+    def normalize(self):
+        if abs(self) == 0:
+            return Vector(0, 0)
+        return self * (1 / abs(self))
 
 
 

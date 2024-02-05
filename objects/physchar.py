@@ -108,13 +108,4 @@ class PhysChar(pygame.sprite.Sprite):
         self.viscosityConst = 1
         self.IN_LIQUID = 0
         self.JUMP_MULT = 1
-
-        # maintains movement
-        self.move(self.velocity.x, 0)
-        self.move(0, self.velocity.y)
-
-        # optimises calculations
-        if math.fabs(self.velocity.x) < 0.2:
-            self.velocity.x = 0
-        if math.fabs(self.velocity.y) < 0.2:
-            self.velocity.y = 0"""
+"""
