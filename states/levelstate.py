@@ -89,10 +89,10 @@ class LevelState(GameState):
                             liquidArr.append(Liquid(self.game, x, y, 255, 255, 255, 150, 0.94, 0.5999))
                     elif currentLayer == "elevator":
 
-                        path = []
-                        path.append((540, 540))
-                        path.append((540, 300))
-                        elevArr.append(Elevator(self.game, path))
+                        # path = []
+                        # path.append((540, 540))
+                        # path.append((540, 300))
+                        # elevArr.append(Elevator(self.game, path))
                         """path = []
                         placeholder = (-1, -1)
                         for _ in range(10):
@@ -137,8 +137,8 @@ class LevelState(GameState):
     def update(self):
         pressed_keys = pygame.key.get_pressed()
         self.player.update(pressed_keys) # player physics and movement
-        self.fallthrough.update() # timer for fallthrough blocks
         self.elevator.update() # timer for elevators
+        self.fallthrough.update() # timer for fallthrough blocks
         # self.enemies.update() # to be implemented
 
     def draw(self, screen):

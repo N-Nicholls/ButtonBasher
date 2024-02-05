@@ -9,27 +9,45 @@ class Elevator(PhysChar):
         self.position = path[self.path_index]
         self.next = path[(self.path_index + 1) % len(path)]  # Use modulo for looping
 
+        self.velocity = Vector(0, 0)
+
     def update(self):
         if self.position != self.next:
-            self.move(self.next)
+            self.getVel(self.next)
             # Check if the elevator has reached its next position
             if Vector(self.rect.x, self.rect.y) == Vector(self.next[0], self.next[1]):
                 self.position = self.next
                 # Update path_index to move to the next position in the path, loop if at the end
                 self.path_index = (self.path_index + 1) % len(self.path)
                 self.next = self.path[self.path_index]
+        super().update()
 
-    def move(self, pos):
+    def getVel(self, pos):
         # Assuming Vector is a class that supports vector arithmetic
         direction = Vector(pos[0], pos[1]) - Vector(self.rect.x, self.rect.y)
-        direction = direction.normalize()  # Normalize direction for consistent speed
-        self.move_single_axis(direction.x, 0)
-        self.move_single_axis(0, direction.y)
+        self.velocity = direction.normalize()  # Normalize direction for consistent speed
+        # self.move_single_axis(direction.x, 0)
+        # self.move_single_axis(0, direction.y)
 
-    def move_single_axis(self, dx, dy):
+    """def move_single_axis(self, dx, dy):
         self.rect.x += dx
         self.rect.y += dy
 
+    def onTop(self, pc):
+        # pc.rect.y += self.rect.y - pc.rect.y - pc.rect.height
+        super().onTop(pc)
+
+    def onBottom(self, pc):
+        super().onBottom(pc)
+
+    def onLeft(self, pc):
+        super().onLeft(pc)
+
+    def onRight(self, pc):
+        super().onRight(pc)"""
+
+    def returnSubclass(self):
+        return "elevator" 
 
 
 

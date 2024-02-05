@@ -50,9 +50,13 @@ class PhysChar(pygame.sprite.Sprite):
         for block in self.game.state.blocks:
             if self.rect.colliderect(block.rect) and block.passable == 0:
                     if dx > 0: # moving right
+                        # if block.returnSubclass() != "elevator":
+                        #    self.rect.right = block.rect.left
                         self.rect.right = block.rect.left
                         block.onLeft(self)
                     if dx < 0: # moving left
+                        # if block.returnSubclass() != "elevator":
+                        #     self.rect.left = block.rect.right
                         self.rect.left = block.rect.right
                         block.onRight(self)
                     if dy > 0: # moving down
@@ -79,6 +83,10 @@ class PhysChar(pygame.sprite.Sprite):
     def onRight(self, pc):
         pc.velocity = Vector(-pc.velocity.x*self.elasticity, pc.velocity.y)*self.friction
 
+
+    def returnSubclass(self):
+        return "physchar"
+    
         '''if self.rect.left < 0: # moving left
             self.rect.left = 0
             self.speedX += 1
