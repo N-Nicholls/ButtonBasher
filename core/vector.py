@@ -8,7 +8,7 @@ class Vector:
     # returns two product of two vectors
     def __add__(self, other):
         return Vector(self.x + other.x, self.y + other.y)
-
+    
     # returns the difference of two vectors
     def __sub__(self, other):
         return Vector(self.x - other.x, self.y - other.y)   

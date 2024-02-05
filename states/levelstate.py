@@ -18,8 +18,9 @@ class LevelState(GameState):
         self.mobs = pygame.sprite.Group()
         self.player = pygame.sprite.Group()
         self.fallthrough = pygame.sprite.Group()
+        self.liquids = pygame.sprite.Group()
         # self.enemies = pygame.sprite.Group()
-        # self.liquids = pygame.sprite.Group()
+        
         self.controls = controls
 
         # arrays for accessing
@@ -27,7 +28,7 @@ class LevelState(GameState):
         self.mobArr = []
         self.playerArr = []
         self.fallthroughArr = []
-        # self.liquidArr = []
+        self.liquidArr = []
         self.parseLevel(level_file, game)
 
     def parseLevel(self, levelFile, game):
@@ -71,13 +72,13 @@ class LevelState(GameState):
                         if col == "^": # conveyor up
                             self.blockArr.append(Conveyor(self.game, x, y, 3, 20, 1))
                         if col == "V": # conveyor down
-                            self.blockArr.append(Conveyor(self.game, x, y, 4, 10, 1))
+                            self.blockArr.append(Conveyor(self.game, x, y, 4, 10, 1))"""
                         if col == "W": # water
-                            self.liquidArr.append(Liquid(self.game, x, y, 0, 70, 255, 70, 0.5, 0.58))
+                            self.liquidArr.append(Liquid(self.game, x, y, 0, 70, 255, 70, 0.98, 0.7))
                         if col == "L": # ladder
-                            self.liquidArr.append(Liquid(self.game, x, y, 255, 255, 0, 150, 1, 0.6))
-                        if col == "C": # cum
-                            self.liquidArr.append(Liquid(self.game, x, y, 255, 255, 255, 150, 0.2, 0.7))"""
+                            self.liquidArr.append(Liquid(self.game, x, y, 255, 255, 0, 150, 0.98, 0.6))
+                        if col == "C": # concrete
+                            self.liquidArr.append(Liquid(self.game, x, y, 255, 255, 255, 150, 0.94, 0.5999))
                         x += game.block_size  # Move to the next block in the row
                     y += game.block_size  # Move to the next row
                     x = game.offset  # Reset x to the start of the next row
@@ -96,9 +97,9 @@ class LevelState(GameState):
             self.fallthrough.add(elements)
             self.blocks.add(elements)
             self.all_sprites.add(elements)
-        """for elements in self.liquidArr:
+        for elements in self.liquidArr:
             self.liquids.add(elements)
-            self.all_sprites.add(elements)"""
+            self.all_sprites.add(elements)
 
     def handleEvents(self, events): # to be implemented
         pass

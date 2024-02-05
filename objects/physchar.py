@@ -30,16 +30,13 @@ class PhysChar(pygame.sprite.Sprite):
         self.in_liquid = False
 
         # optimises calculations
-        if math.fabs(self.velocity.x) < 0.3:
+        if math.fabs(self.velocity.x) < 0.02:
             self.velocity.x = 0
-        if math.fabs(self.velocity.y) < 0.3:
+        if math.fabs(self.velocity.y) < 0.02:
             self.velocity.y = 0
 
         # maintains movement
-        self.move(self.velocity.x, 0)
-        self.move(0, self.velocity.y)
-
-        
+        self.move(self.velocity.x, self.velocity.y)
 
     # collision stuff per direction individually
     def move(self, dx, dy):
@@ -64,7 +61,9 @@ class PhysChar(pygame.sprite.Sprite):
                     if dy < 0: # moving up
                         self.rect.top = block.rect.bottom
                         block.onBottom(self)
-
+        for liquid in self.game.state.liquids:
+            if self.rect.colliderect(liquid.rect):
+                liquid.inside(self)
 
     def onTop(self, pc):
         pc.on_ground = 3
@@ -79,49 +78,6 @@ class PhysChar(pygame.sprite.Sprite):
         pass
     def onRight(self, pc):
         pc.velocity = Vector(-pc.velocity.x*self.elasticity, pc.velocity.y)*self.friction
-
-
-    
-
-
-    
-
-
-    """
-    def moveSingleAxis(self, dx, dy):
-        
-        # Move the rect
-        self.rect.x += dx
-        self.rect.y += dy
-
-        # collision w/ blocks and walls
-        for block in self.game.state.blocks:
-            if block.passable <= 0:
-                if self.rect.colliderect(block.rect):
-                    avgElas = (self.elasticity*block.elasticity)/2
-                    if dx > 0: # moving right 
-                        self.rect.right = block.rect.left
-                        self.velocity += Vector(-self.velocity.x*avgElas*block.friction, 0) # bounce
-                        block.onLeft(self)
-                    if dx < 0: # moving left
-                        self.rect.left = block.rect.right
-                        self.velocity += Vector(-self.velocity.x*avgElas*block.friction, 0) # bounce
-                        block.onRight(self)
-                    if dy > 0: # moving down
-                        self.rect.bottom = block.rect.top
-                        self.velocity += Vector(0, -self.velocity.y*avgElas*block.friction) # stop falling, makes it so you don't bounce
-                        block.onTop(self)
-                    if dy < 0: # moving up
-                        self.rect.top = block.rect.bottom
-                        self.velocity += Vector(0, -self.velocity.y*avgElas*block.friction) # bounce
-                        block.onBottom(self)
-            else:
-                block.update()
-
-        for liquid in self.game.state.liquids:
-            if self.rect.colliderect(liquid.rect):
-                liquid.inside(self)
-
 
         '''if self.rect.left < 0: # moving left
             self.rect.left = 0
@@ -139,7 +95,7 @@ class PhysChar(pygame.sprite.Sprite):
 
 
 
-    def update(self):  
+    """def update(self):  
         # Tag controlling if on ground. Every frame lowers by 1, if 0, then on ground
         # total frames allowed depends on ON_GROUND_FRAMES
         if self.ON_GROUND > 0:
