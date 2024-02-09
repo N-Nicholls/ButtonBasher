@@ -32,7 +32,7 @@ class Game():
         self.running = True
 
         # eventually should be main menu state
-        self.state = LevelState("./levels/level.txt", self, self.controls) # should be more comprehensive later
+        self.state = LevelState("./levels/level3.txt", self, self.controls) # should be more comprehensive later
 
     def load_controls(self, controls_config):
         controls = {}

@@ -1,70 +1,49 @@
 from objects.physchar import PhysChar
 from core.vector import Vector
+import pygame
 
 class Elevator(PhysChar):
-    def __init__(self, game, path):
-        super().__init__(game, path[0][0], path[0][1], game.block_size, game.block_size, 0.95, 0, 100, 100, 100)
-        self.path = path
-        self.path_index = 0  # Keep track of the current index in the path
-        self.position = path[self.path_index]
-        self.next = path[(self.path_index + 1) % len(path)]  # Use modulo for looping
-
+    def __init__(self, game, position, next = (0, 0), speed = 1):
+        super().__init__(game, position[0], position[1], game.block_size*3, game.block_size/2, 0.80, 0, 100, 100, 100)
+        self.speedMult = speed
         self.velocity = Vector(0, 0)
+        self.position = (self.rect.centerx, self.rect.centery)
+        self.next = (next[0], next[1])
+        self.pointA = self.position
+        self.pointB = self.next
 
     def update(self):
-        if self.position != self.next:
-            self.getVel(self.next)
-            # Check if the elevator has reached its next position
-            if Vector(self.rect.x, self.rect.y) == Vector(self.next[0], self.next[1]):
-                self.position = self.next
-                # Update path_index to move to the next position in the path, loop if at the end
-                self.path_index = (self.path_index + 1) % len(self.path)
-                self.next = self.path[self.path_index]
-        super().update()
+        if self.position == self.pointA:
+            self.next = self.pointB
+        elif self.position == self.pointB:
+            self.next = self.pointA
+        self.move()
 
-    def getVel(self, pos):
-        # Assuming Vector is a class that supports vector arithmetic
-        direction = Vector(pos[0], pos[1]) - Vector(self.rect.x, self.rect.y)
-        self.velocity = direction.normalize()  # Normalize direction for consistent speed
-        # self.move_single_axis(direction.x, 0)
-        # self.move_single_axis(0, direction.y)
 
-    """def move_single_axis(self, dx, dy):
+    def move(self):
+        self.velocity = (0, 0)
+        self.position = (self.rect.centerx, self.rect.centery)
+        self.velocity = Vector(self.next[0] - self.position[0], self.next[1] - self.position[1]).normalize() * self.speedMult
+        self.moveSingleAxis(self.velocity.x, 0)
+        self.moveSingleAxis(0, self.velocity.y)
+
+    def moveSingleAxis(self, dx, dy):
         self.rect.x += dx
         self.rect.y += dy
-
-    def onTop(self, pc):
-        # pc.rect.y += self.rect.y - pc.rect.y - pc.rect.height
-        super().onTop(pc)
-
-    def onBottom(self, pc):
-        super().onBottom(pc)
-
-    def onLeft(self, pc):
-        super().onLeft(pc)
-
-    def onRight(self, pc):
-        super().onRight(pc)"""
+        for block in self.game.state.player:
+            if self.rect.colliderect(block.rect) and block.passable == 0:
+                    if dx > 0: # moving right
+                        self.rect.right = block.rect.left
+                        # block.onLeft(self)
+                    if dx < 0: # moving left
+                        self.rect.left = block.rect.right
+                        # block.onRight(self)
+                    if dy > 0: # moving down
+                        self.rect.bottom = block.rect.top
+                        # block.onTop(self)
+                    if dy < 0: # moving up
+                        self.rect.top = block.rect.bottom
+                        # block.onBottom(self)
 
     def returnSubclass(self):
-        return "elevator" 
-
-
-
-
-
-"""class Elevator(PhysChar):
-    def __init__(self, game, path):
-        super().__init__(game, path[0][0], path[0][1], game.block_size, game.block_size, 0.95, 0, 100, 100, 100)
-        self.position = path[0]
-        self.path = path
-        self.next = path[1]
-
-    def update(self):
-        if self.position != self.next:
-            self.move(self.next)
-
-    def move(self, pos):
-        direction = Vector(pos[0], pos[1]) - Vector(self.rect.x, self.rect.y)
-        self.rect.x += direction.x
-        self.rect.y += direction.y"""
+        return "elevator"

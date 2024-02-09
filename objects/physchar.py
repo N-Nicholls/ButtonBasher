@@ -50,17 +50,16 @@ class PhysChar(pygame.sprite.Sprite):
         for block in self.game.state.blocks:
             if self.rect.colliderect(block.rect) and block.passable == 0:
                     if dx > 0: # moving right
-                        # if block.returnSubclass() != "elevator":
-                        #    self.rect.right = block.rect.left
                         self.rect.right = block.rect.left
                         block.onLeft(self)
                     if dx < 0: # moving left
-                        # if block.returnSubclass() != "elevator":
-                        #     self.rect.left = block.rect.right
                         self.rect.left = block.rect.right
                         block.onRight(self)
                     if dy > 0: # moving down
                         self.rect.bottom = block.rect.top
+                        if block.returnSubclass() == "elevator": # if elevator, then move with it
+                            if block.velocity.y <= 0:
+                                self.move(block.velocity.x, block.velocity.y)
                         block.onTop(self)
                     if dy < 0: # moving up
                         self.rect.top = block.rect.bottom

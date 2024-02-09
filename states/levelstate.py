@@ -37,9 +37,10 @@ class LevelState(GameState):
         y = game.offset
 
         # World is 1920x1080, each block is 30x30, so 64x36 blocks
+        temp = [None, None, None, None, None, None, None, None, None, None]
+        # temp1 = [None, None]
         with open(levelFile, 'r') as file:
             lines = file.readlines()
-
         for line in lines:
             line = line.strip()
             words = line.split()
@@ -88,29 +89,25 @@ class LevelState(GameState):
                         if col == "C": # concrete
                             liquidArr.append(Liquid(self.game, x, y, 255, 255, 255, 150, 0.94, 0.5999))
                     elif currentLayer == "elevator":
-
-                        # path = []
-                        # path.append((540, 540))
-                        # path.append((540, 300))
-                        # elevArr.append(Elevator(self.game, path))
-                        """path = []
-                        placeholder = (-1, -1)
-                        for _ in range(10):
-                            path.append(placeholder)
-                        # if col == "E":
-                        if col == "0":
-                            path[0] = (x, y)
-                            elevArr.append(Elevator(self.game, path))
-                        elif col.isdigit():
-                            node_index = int(col)
-                            if node_index >= int(col):
-                                additional_placeholders = [placeholder] * (node_index - len(path) + 1)
-                                path.extend(additional_placeholders)
-                            path[node_index] = (x, y)"""
-
+                        if col.isdigit():
+                            temp[int(col)] = (x, y)
+                        """if col == "0":
+                            temp0[0] = (x, y)
+                        if col == "1":
+                            temp0[1] = (x, y)
+                        if temp0[0] and temp0[1]:
+                            elevArr.append(Elevator(self.game, temp0[0], temp0[1], 1))  
+                            temp0 = [None, None]"""
                     x += game.block_size  # Move to the next block in the row
                 y += game.block_size  # Move to the next row
                 x = game.offset  # Reset x to the start of the next row
+            for i in range(0, 10):
+                if temp[i] and temp[i+1]:
+                    elevArr.append(Elevator(self.game, temp[i], temp[i+1], 1))
+                    temp[i] = None
+                    temp[i+1] = None
+ 
+            
             
 
         for elements in blockArr:
@@ -130,6 +127,8 @@ class LevelState(GameState):
             self.elevator.add(elements)
             self.blocks.add(elements)
             self.all_sprites.add(elements)
+
+
 
     def handleEvents(self, events): # to be implemented
         pass
