@@ -1,17 +1,35 @@
-'''class Enemy(pygame.sprite.Sprite):
-    def __init__(self):
-        super(Enemy, self).__init__()
-        self.surf = pygame.Surface((20, 10))
-        self.surf.fill((255, 255, 255))
-        self.rect = self.surf.get_rect(
-            center=(
-                random.randint(SCREEN_WIDTH + 20, SCREEN_WIDTH + 100),
-                random.randint(0, SCREEN_HEIGHT),
-            )
-        )
-        self.speed = random.randint(5, 20)
+import pygame
+import random
+from core.vector import Vector
+from objects.physchar import PhysChar
+
+
+class Enemy(PhysChar): 
+    def __init__(self, game, pos):
+        self.speed = random.randint(1, 3)
+        super().__init__(game, pos[0], pos[1], game.block_size, game.block_size, 0.95, 0, 255*(self.speed/3), 0, 0) # gets more red the faster they are
+        self.velocity = Vector(0, 0)
+        x = [-1, 1]
+        self.direction = random.choice(x)
+        self.maxSpeed = 5
     
+    def canMove(self):
+        nextPos = self.rect.copy()
+        nextPos.x += 20*self.direction
+        nextPos.y += 20
+
+        for block in self.game.state.blocks:
+            if nextPos.colliderect(block.rect) and block.passable == 0:
+                return True
+        self.direction *= -1
+        return False
+
+
     def update(self):
-        self.rect.move_ip(-self.speed, 0)
-        if self.rect.right < 0:
-            self.kill()'''
+        if self.canMove() and abs(self.velocity) < self.maxSpeed:
+            self.velocity += Vector(self.speed*self.direction, 0)
+
+        super().update()
+
+    def returnSubclass(self):
+        return "enemy"

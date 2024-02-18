@@ -67,6 +67,10 @@ class PhysChar(pygame.sprite.Sprite):
         for liquid in self.game.state.liquids:
             if self.rect.colliderect(liquid.rect):
                 liquid.inside(self)
+        if self.returnSubclass() == "enemy": # enemy collision, could later have diff collision stuff than just death
+            for player in self.game.state.player:
+                if self.rect.colliderect(player.rect):
+                    player.kill()
 
     def onTop(self, pc):
         pc.on_ground = 3
@@ -78,9 +82,13 @@ class PhysChar(pygame.sprite.Sprite):
         pass
     def onLeft(self, pc):
         pc.velocity = Vector(-pc.velocity.x*self.elasticity, pc.velocity.y)*self.friction
+        if pc.returnSubclass() == "enemy":
+            pc.direction *= -1
         pass
     def onRight(self, pc):
         pc.velocity = Vector(-pc.velocity.x*self.elasticity, pc.velocity.y)*self.friction
+        if pc.returnSubclass() == "enemy":
+            pc.direction *= -1
 
 
     def returnSubclass(self):

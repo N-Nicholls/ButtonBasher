@@ -1,6 +1,5 @@
 from objects.physchar import PhysChar
 from core.vector import Vector
-import pygame
 
 class Elevator(PhysChar):
     def __init__(self, game, position, next = (0, 0), speed = 1):
@@ -9,8 +8,8 @@ class Elevator(PhysChar):
         self.velocity = Vector(0, 0)
         self.position = (self.rect.centerx, self.rect.centery)
         self.next = (next[0], next[1])
-        self.pointA = self.position
-        self.pointB = self.next
+        self.pointA = self.position[0], self.position[1]
+        self.pointB = self.next[0], self.next[1]
 
     def update(self):
         if self.position == self.pointA:
@@ -30,7 +29,7 @@ class Elevator(PhysChar):
     def moveSingleAxis(self, dx, dy):
         self.rect.x += dx
         self.rect.y += dy
-        for block in self.game.state.player:
+        for block in self.game.state.mobiles:
             if self.rect.colliderect(block.rect) and block.passable == 0:
                     if dx > 0: # moving right
                         self.rect.right = block.rect.left

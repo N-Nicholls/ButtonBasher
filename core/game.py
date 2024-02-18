@@ -63,6 +63,7 @@ class Game():
             for event in events:
                 if event.type == pygame.QUIT:
                     self.running = False
+
         
             self.state.handleEvents(events)
             self.state.update()

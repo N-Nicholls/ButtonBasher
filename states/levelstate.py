@@ -5,6 +5,8 @@ from objects.player import Player
 from objects.fallthrough import FallThrough
 from objects.conveyor import Conveyor
 from objects.elevator import Elevator
+from objects.enemy import Enemy
+from pygame.locals import K_DOWN, K_UP, K_LEFT, K_RIGHT, K_ESCAPE
 import pygame
 
 # class to hold a level. Holds blocks and mobs and anything in a game instance
@@ -20,10 +22,15 @@ class LevelState(GameState):
         self.fallthrough = pygame.sprite.Group()
         self.liquids = pygame.sprite.Group()
         self.elevator = pygame.sprite.Group()
-        # self.enemies = pygame.sprite.Group()
+        self.enemies = pygame.sprite.Group()
+        self.mobiles = pygame.sprite.Group() # for generic moving block collision, like elevators
         
         self.controls = controls
         self.parseLevel(level_file, game)
+
+        # events and timers
+        self.ADDENEMY = pygame.USEREVENT + 1
+        pygame.time.set_timer(self.ADDENEMY, 1000) # add enemy every second, in ms
 
     def parseLevel(self, levelFile, game):
         currentLayer = None
@@ -33,12 +40,12 @@ class LevelState(GameState):
         fallthroughArr = []
         liquidArr = []
         elevArr = []
+        enemyArr = []
         x = game.offset
         y = game.offset
 
         # World is 1920x1080, each block is 30x30, so 64x36 blocks
-        temp = [None, None, None, None, None, None, None, None, None, None]
-        # temp1 = [None, None]
+        temp = [None, None, None, None, None, None, None, None, None, None] # for elevators
         with open(levelFile, 'r') as file:
             lines = file.readlines()
         for line in lines:
@@ -48,7 +55,7 @@ class LevelState(GameState):
             if not words:
                 continue # Skip empty lines
 
-            if words[0].lower() in ["main", "elevator"]:
+            if words[0].lower() in ["main", "elevator", "enemy"]:
                 currentLayer = words[0].lower()
                 x, y = game.offset, game.offset
                 continue
@@ -91,13 +98,9 @@ class LevelState(GameState):
                     elif currentLayer == "elevator":
                         if col.isdigit():
                             temp[int(col)] = (x, y)
-                        """if col == "0":
-                            temp0[0] = (x, y)
-                        if col == "1":
-                            temp0[1] = (x, y)
-                        if temp0[0] and temp0[1]:
-                            elevArr.append(Elevator(self.game, temp0[0], temp0[1], 1))  
-                            temp0 = [None, None]"""
+                    elif currentLayer == "enemy":
+                        if col == "E":
+                            enemyArr.append(Enemy(self.game, (x, y)))
                     x += game.block_size  # Move to the next block in the row
                 y += game.block_size  # Move to the next row
                 x = game.offset  # Reset x to the start of the next row
@@ -106,15 +109,13 @@ class LevelState(GameState):
                     elevArr.append(Elevator(self.game, temp[i], temp[i+1], 1))
                     temp[i] = None
                     temp[i+1] = None
- 
-            
-            
 
         for elements in blockArr:
             self.blocks.add(elements)
             self.all_sprites.add(elements)
         for elements in playerArr:
             self.player.add(elements)
+            self.mobiles.add(elements)
             self.all_sprites.add(elements)
         for elements in fallthroughArr:
             self.fallthrough.add(elements)
@@ -127,18 +128,32 @@ class LevelState(GameState):
             self.elevator.add(elements)
             self.blocks.add(elements)
             self.all_sprites.add(elements)
+        for elements in enemyArr:
+            self.enemies.add(elements)
+            self.mobiles.add(elements)
+            self.all_sprites.add(elements)
+
+    def spawnEnemy(self, x, y):
+        pass
 
 
 
     def handleEvents(self, events): # to be implemented
-        pass
+        pressed_keys = pygame.key.get_pressed()
+        for event in events:
+            if pressed_keys[K_ESCAPE]:
+                    self.running = False
+            elif event.type == self.ADDENEMY:
+                '''new_enemy = Enemy()
+                self.enemies.add(new_enemy)
+                self.all_sprites.add(new_enemy)'''
 
     def update(self):
         pressed_keys = pygame.key.get_pressed()
         self.player.update(pressed_keys) # player physics and movement
         self.elevator.update() # timer for elevators
         self.fallthrough.update() # timer for fallthrough blocks
-        # self.enemies.update() # to be implemented
+        self.enemies.update() # enemy movement and collision
 
     def draw(self, screen):
         screen.fill((0, 0, 0))
@@ -149,29 +164,3 @@ class LevelState(GameState):
 
 
 
-'''
-# events and timers
-ADDENEMY = pygame.USEREVENT + 1
-# pygame.time.set_timer(ADDENEMY, 250) # Temp removed 
-
-# Main loop
-while running:
-    # for loop through the event queue
-    for event in pygame.event.get():
-        # Check for KEYDOWN event
-        if event.type == KEYDOWN:
-            # If the Esc key is pressed, then exit the main loop
-            if event.key == K_ESCAPE:
-                running = False
-        # Check for QUIT event. If QUIT, then set running to false.
-        elif event.type == QUIT:
-            running = False
-        elif event.type == ADDENEMY:
-            new_enemy = Enemy()
-            enemies.add(new_enemy)
-            all_sprites.add(new_enemy)
-
-    if pygame.sprite.spritecollideany(Mobs[0], enemies):
-        Mobs[0].kill()
-        running = False
-'''
