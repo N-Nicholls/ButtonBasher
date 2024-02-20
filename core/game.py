@@ -18,7 +18,7 @@ class Game():
         self.screen_width = config_data_loaded["screen"]["width"]
         self.screen_height = config_data_loaded["screen"]["height"]
         self.frame_rate = config_data_loaded["frameRate"]
-        self.default = {'right': pygame.K_l, 'left': pygame.K_QUOTE, 'up': pygame.K_p, 'down': pygame.K_SEMICOLON, 'escape': pygame.K_ESCAPE, 'enemy': pygame.K_1, 'button': pygame.K_2}
+        self.default = {'right': pygame.K_l, 'left': pygame.K_QUOTE, 'up': pygame.K_p, 'down': pygame.K_SEMICOLON, 'escape': pygame.K_ESCAPE, 'enemy': pygame.K_1, 'button': pygame.K_2, 'player': pygame.K_3}
         self.controls = self.load_controls(config_data_loaded["controls"]) # needs to convert json strings to PYGAME consts
 
         self.block_size = self.screen_width/64 # maintains the ratio of 64x36 blocks for 16:9 resolution

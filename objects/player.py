@@ -1,11 +1,12 @@
 from core.vector import Vector
 from objects.physchar import PhysChar
+from core.spritesheet import SpriteSheet
 
 # phys obj that can be controlled
 class Player(PhysChar):
 
-    def __init__(self, game, controls, xpos, ypos):
-        super().__init__(game, xpos, ypos)
+    def __init__(self, game, controls, pos):
+        super().__init__(game, pos[0], pos[1])
         self.controls = controls
         self.maxSpeed = 10 # max speed for adding movement
         self.jump_mult = 1
@@ -38,3 +39,8 @@ class Player(PhysChar):
         
         # Use formatted string literals with fixed spacing
         print(f"xpos: {self.rect.x:<4} ypos: {self.rect.y:<4} velocity: {formatted_velocity:<15} on ground: {formatted_on_ground} in liquid: {formatted_in_liquid}" + " Jump Mult:" + str(self.jump_mult))
+
+    def returnSubclass(self):
+        return "player"
+    def returnMobile(self):
+        return True

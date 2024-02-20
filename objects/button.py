@@ -11,3 +11,6 @@ class Button(PhysChar):
 
     def returnSubclass(self):
         return "button"
+
+    def returnMobile(self):
+        return True

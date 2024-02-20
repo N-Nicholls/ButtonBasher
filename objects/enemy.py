@@ -32,3 +32,6 @@ class Enemy(PhysChar):
 
     def returnSubclass(self):
         return "enemy"
+    
+    def returnMobile(self):
+        return True

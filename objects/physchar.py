@@ -67,6 +67,21 @@ class PhysChar(pygame.sprite.Sprite):
         for liquid in self.game.state.liquids:
             if self.rect.colliderect(liquid.rect):
                 liquid.inside(self)
+        for mobile in self.game.state.mobiles:
+            if self.rect.colliderect(mobile.rect) and mobile.passable == 0 and self.rect != mobile.rect:
+                    if dx > 0: # moving right
+                        self.rect.right = mobile.rect.left
+                        mobile.onLeft(self)
+                    if dx < 0: # moving left
+                        self.rect.left = mobile.rect.right
+                        mobile.onRight(self)
+                    if dy > 0: # moving down
+                        self.rect.bottom = mobile.rect.top
+                        mobile.onTop(self)
+                    if dy < 0: # moving up
+                        self.rect.top = mobile.rect.bottom
+                        mobile.onBottom(self)
+
         if self.returnSubclass() == "enemy": # enemy collision, could later have diff collision stuff than just death
             for player in self.game.state.player:
                 if self.rect.colliderect(player.rect):
@@ -95,6 +110,9 @@ class PhysChar(pygame.sprite.Sprite):
 
     def returnSubclass(self):
         return "physchar"
+    
+    def returnMobile(self):
+        return False
     
         '''if self.rect.left < 0: # moving left
             self.rect.left = 0

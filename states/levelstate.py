@@ -38,10 +38,12 @@ class LevelState(GameState):
         currentLayer = None
         # arrays for accessing
         blockArr = []
-        playerArr = []
         fallthroughArr = []
         liquidArr = []
         elevArr = []
+
+        # spawn points
+        self.playerArr = []
         self.enemyArr = []
         self.buttonArr = []
         x = game.offset
@@ -72,7 +74,7 @@ class LevelState(GameState):
                         if col == "B":  # block
                             blockArr.append(PhysChar(self.game, x, y, None, None, 0.85, 0, 139, 69, 19))
                         if col == "P": # player
-                            playerArr.append(Player(self.game, self.controls, x, y))
+                            self.playerArr.append((x, y))
                         if col == "R": # Redbull
                             blockArr.append(PhysChar(self.game, x, y, None, None, 1.05, 0, 255, 0, 0))
                         if col == "S": # Sludge
@@ -101,12 +103,13 @@ class LevelState(GameState):
                             liquidArr.append(Liquid(self.game, x, y, 255, 255, 255, 150, 0.94, 0.5999))
                         if col == "@": # button
                             self.buttonArr.append((x, y))
+                        if col == "E":
+                            self.enemyArr.append((x, y))
                     elif currentLayer == "elevator":
                         if col.isdigit():
                             temp[int(col)] = (x, y)
                     elif currentLayer == "enemy":
-                        if col == "E":
-                            self.enemyArr.append((x, y))
+                        pass
                     x += game.block_size  # Move to the next block in the row
                 y += game.block_size  # Move to the next row
                 x = game.offset  # Reset x to the start of the next row
@@ -118,10 +121,6 @@ class LevelState(GameState):
 
         for elements in blockArr:
             self.blocks.add(elements)
-            self.all_sprites.add(elements)
-        for elements in playerArr:
-            self.player.add(elements)
-            self.mobiles.add(elements)
             self.all_sprites.add(elements)
         for elements in fallthroughArr:
             self.fallthrough.add(elements)
@@ -137,17 +136,24 @@ class LevelState(GameState):
         
 
     def spawnEnemy(self):
-        for elements in self.enemyArr:
-            temp = Enemy(self.game, elements)
-            self.enemies.add(temp)
-            self.mobiles.add(temp)
-            self.all_sprites.add(temp)
+        choice = random.choice(self.enemyArr)
+        temp = Enemy(self.game, choice)
+        self.enemies.add(temp)
+        self.mobiles.add(temp)
+        self.all_sprites.add(temp)
 
     def spawnButton(self):
         choice = random.choice(self.buttonArr) # chooses random button to spawn button
         temp = Button(self.game, choice)
         self.mobiles.add(temp)
         self.buttons.add(temp)
+        self.all_sprites.add(temp)
+    
+    def spawnPlayer(self):
+        choice = random.choice(self.playerArr)
+        temp = Player(self.game, self.controls, choice)
+        self.player.add(temp)
+        self.mobiles.add(temp)
         self.all_sprites.add(temp)
 
     def handleEvents(self, events): 
@@ -158,6 +164,9 @@ class LevelState(GameState):
                 self.COOLDOWN = 3
             if pressed_keys[self.game.controls['button']] and self.COOLDOWN == 0:
                 self.spawnButton()
+                self.COOLDOWN = 3
+            if pressed_keys[self.game.controls['player']] and self.COOLDOWN == 0:
+                self.spawnPlayer()
                 self.COOLDOWN = 3
             elif event.type == self.ADDENEMY:
                 # self.spawnEnemy()

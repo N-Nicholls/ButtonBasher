@@ -29,20 +29,20 @@ class Elevator(PhysChar):
     def moveSingleAxis(self, dx, dy):
         self.rect.x += dx
         self.rect.y += dy
-        for block in self.game.state.mobiles:
-            if self.rect.colliderect(block.rect) and block.passable == 0:
+        for mobile in self.game.state.mobiles:
+            if self.rect.colliderect(mobile.rect) and mobile.passable == 0:
                     if dx > 0: # moving right
-                        self.rect.right = block.rect.left
-                        # block.onLeft(self)
+                        self.rect.right = mobile.rect.left
+                        # mobile.onLeft(self)
                     if dx < 0: # moving left
-                        self.rect.left = block.rect.right
-                        # block.onRight(self)
+                        self.rect.left = mobile.rect.right
+                        # mobile.onRight(self)
                     if dy > 0: # moving down
-                        self.rect.bottom = block.rect.top
-                        # block.onTop(self)
+                        self.rect.bottom = mobile.rect.top
+                        # mobile.onTop(self)
                     if dy < 0: # moving up
-                        self.rect.top = block.rect.bottom
-                        # block.onBottom(self)
+                        self.rect.top = mobile.rect.bottom
+                        # mobile.onBottom(self)
 
     def returnSubclass(self):
         return "elevator"
