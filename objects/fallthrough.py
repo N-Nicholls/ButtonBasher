@@ -1,4 +1,3 @@
-from pygame.locals import K_DOWN #only whats needed
 from objects.physchar import PhysChar
 
 # basically a trapdoor that makes it passable if the obj on it presses down
@@ -11,7 +10,7 @@ class FallThrough(PhysChar): # if you're on it and press down, you fall through
              self.passable -= 1
 
     def onTop(self, pc):    
-        if pc.controls[K_DOWN] and pc.on_ground > 0:
+        if pc.controls[self.game.controls["down"]] and pc.on_ground > 0:
             self.passable = 15
         super().onTop(pc)
         

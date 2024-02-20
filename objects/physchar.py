@@ -72,6 +72,8 @@ class PhysChar(pygame.sprite.Sprite):
                 if self.rect.colliderect(player.rect):
                     player.kill()
 
+
+
     def onTop(self, pc):
         pc.on_ground = 3
         pc.jump_mult = self.elasticity + pc.elasticity

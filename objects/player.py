@@ -1,5 +1,3 @@
-import math
-from pygame.locals import K_DOWN, K_UP, K_LEFT, K_RIGHT
 from core.vector import Vector
 from objects.physchar import PhysChar
 
@@ -17,15 +15,15 @@ class Player(PhysChar):
         self.printStuff()
 
         self.controls = pressed_keys
-        if self.controls[K_DOWN] and self.velocity.y < self.maxSpeed:
+        if self.controls[self.game.controls['down']] and self.velocity.y < self.maxSpeed:
             self.velocity += Vector(0, 1)
-        if self.controls[K_UP] and self.on_ground > 0 and self.velocity.y > -self.maxSpeed:
+        if self.controls[self.game.controls['up']] and self.on_ground > 0 and self.velocity.y > -self.maxSpeed:
             self.velocity += Vector(0, -10 * self.jump_mult)
-        if self.controls[K_UP] and self.in_liquid == 1 and self.velocity.y > -self.maxSpeed:
+        if self.controls[self.game.controls['up']] and self.in_liquid == 1 and self.velocity.y > -self.maxSpeed:
             self.velocity += Vector(0, -1)
-        if self.controls[K_LEFT] and self.velocity.x > -self.maxSpeed:
+        if self.controls[self.game.controls['left']] and self.velocity.x > -self.maxSpeed:
             self.velocity += Vector(-1, 0)
-        if self.controls[K_RIGHT] and self.velocity.x < self.maxSpeed:
+        if self.controls[self.game.controls['right']] and self.velocity.x < self.maxSpeed:
             self.velocity += Vector(1, 0)
         super().update()
 

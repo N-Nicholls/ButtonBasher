@@ -1,4 +1,3 @@
-import pygame
 import random
 from core.vector import Vector
 from objects.physchar import PhysChar

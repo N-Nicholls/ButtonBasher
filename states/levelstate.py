@@ -6,8 +6,9 @@ from objects.fallthrough import FallThrough
 from objects.conveyor import Conveyor
 from objects.elevator import Elevator
 from objects.enemy import Enemy
-from pygame.locals import K_DOWN, K_UP, K_LEFT, K_RIGHT, K_ESCAPE
+from objects.button import Button
 import pygame
+import random
 
 # class to hold a level. Holds blocks and mobs and anything in a game instance
 class LevelState(GameState):
@@ -22,8 +23,9 @@ class LevelState(GameState):
         self.fallthrough = pygame.sprite.Group()
         self.liquids = pygame.sprite.Group()
         self.elevator = pygame.sprite.Group()
-        self.enemies = pygame.sprite.Group()
-        self.mobiles = pygame.sprite.Group() # for generic moving block collision, like elevators
+        self.enemies = pygame.sprite.Group() # called for pathfinding and movement
+        self.mobiles = pygame.sprite.Group() # for generic moving block collision, like elevators, shouldn't be called to move
+        self.buttons = pygame.sprite.Group()
         
         self.controls = controls
         self.parseLevel(level_file, game)
@@ -40,9 +42,11 @@ class LevelState(GameState):
         fallthroughArr = []
         liquidArr = []
         elevArr = []
-        enemyArr = []
+        self.enemyArr = []
+        self.buttonArr = []
         x = game.offset
         y = game.offset
+        self.COOLDOWN = 0
 
         # World is 1920x1080, each block is 30x30, so 64x36 blocks
         temp = [None, None, None, None, None, None, None, None, None, None] # for elevators
@@ -95,12 +99,14 @@ class LevelState(GameState):
                             liquidArr.append(Liquid(self.game, x, y, 255, 255, 0, 150, 0.98, 0.6))
                         if col == "C": # concrete
                             liquidArr.append(Liquid(self.game, x, y, 255, 255, 255, 150, 0.94, 0.5999))
+                        if col == "@": # button
+                            self.buttonArr.append((x, y))
                     elif currentLayer == "elevator":
                         if col.isdigit():
                             temp[int(col)] = (x, y)
                     elif currentLayer == "enemy":
                         if col == "E":
-                            enemyArr.append(Enemy(self.game, (x, y)))
+                            self.enemyArr.append((x, y))
                     x += game.block_size  # Move to the next block in the row
                 y += game.block_size  # Move to the next row
                 x = game.offset  # Reset x to the start of the next row
@@ -128,25 +134,34 @@ class LevelState(GameState):
             self.elevator.add(elements)
             self.blocks.add(elements)
             self.all_sprites.add(elements)
-        for elements in enemyArr:
-            self.enemies.add(elements)
-            self.mobiles.add(elements)
-            self.all_sprites.add(elements)
+        
 
-    def spawnEnemy(self, x, y):
-        pass
+    def spawnEnemy(self):
+        for elements in self.enemyArr:
+            temp = Enemy(self.game, elements)
+            self.enemies.add(temp)
+            self.mobiles.add(temp)
+            self.all_sprites.add(temp)
 
+    def spawnButton(self):
+        choice = random.choice(self.buttonArr) # chooses random button to spawn button
+        temp = Button(self.game, choice)
+        self.mobiles.add(temp)
+        self.buttons.add(temp)
+        self.all_sprites.add(temp)
 
-
-    def handleEvents(self, events): # to be implemented
+    def handleEvents(self, events): 
         pressed_keys = pygame.key.get_pressed()
         for event in events:
-            if pressed_keys[K_ESCAPE]:
-                    self.running = False
+            if pressed_keys[self.game.controls['enemy']] and self.COOLDOWN == 0:
+                self.spawnEnemy()
+                self.COOLDOWN = 3
+            if pressed_keys[self.game.controls['button']] and self.COOLDOWN == 0:
+                self.spawnButton()
+                self.COOLDOWN = 3
             elif event.type == self.ADDENEMY:
-                '''new_enemy = Enemy()
-                self.enemies.add(new_enemy)
-                self.all_sprites.add(new_enemy)'''
+                # self.spawnEnemy()
+                pass
 
     def update(self):
         pressed_keys = pygame.key.get_pressed()
@@ -154,6 +169,9 @@ class LevelState(GameState):
         self.elevator.update() # timer for elevators
         self.fallthrough.update() # timer for fallthrough blocks
         self.enemies.update() # enemy movement and collision
+        self.buttons.update()
+        if self.COOLDOWN > 0:
+            self.COOLDOWN -= 1
 
     def draw(self, screen):
         screen.fill((0, 0, 0))
