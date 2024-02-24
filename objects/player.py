@@ -6,7 +6,7 @@ from core.spritesheet import SpriteSheet
 class Player(PhysChar):
 
     def __init__(self, game, controls, pos):
-        super().__init__(game, pos[0], pos[1])
+        super().__init__(game, pos)
         self.controls = controls
         self.maxSpeed = 10 # max speed for adding movement
         self.jump_mult = 1

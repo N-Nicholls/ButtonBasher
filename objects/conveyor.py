@@ -3,11 +3,11 @@ from core.vector import Vector
 
 # Jump Pad applies constant speed for as long as you're on it, works for game ig
 class Conveyor(PhysChar): #1-left, 2-right, 3-up, 4-down
-    def __init__(self, game, xpos, ypos, direct = None, speedCon = 5):
+    def __init__(self, game, pos, direct = None, speedCon = 5):
         self.direction = direct
         self.speed = speedCon
         self.game = game
-        super().__init__(game, xpos, ypos, None, None, 0.92, 0, 100, 100, 0)
+        super().__init__(game, pos, 0.92, 0)
 
     def onTop(self, pc):
         super().onTop(pc)

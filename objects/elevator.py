@@ -3,7 +3,7 @@ from core.vector import Vector
 
 class Elevator(PhysChar):
     def __init__(self, game, position, next = (0, 0), speed = 1):
-        super().__init__(game, position[0], position[1], game.block_size*3, game.block_size/2, 0.80, 0, 100, 100, 100)
+        super().__init__(game, position, 0.80, 0)
         self.speedMult = speed
         self.velocity = Vector(0, 0)
         self.position = (self.rect.centerx, self.rect.centery)

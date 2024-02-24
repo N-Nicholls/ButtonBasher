@@ -6,7 +6,7 @@ from objects.physchar import PhysChar
 class Enemy(PhysChar): 
     def __init__(self, game, pos):
         self.speed = random.randint(1, 3)
-        super().__init__(game, pos[0], pos[1], game.block_size, game.block_size, 0.95, 0, 255*(self.speed/3), 0, 0) # gets more red the faster they are
+        super().__init__(game, pos, 0.95, 0) # gets more red the faster they are
         self.velocity = Vector(0, 0)
         x = [-1, 1]
         self.direction = random.choice(x)

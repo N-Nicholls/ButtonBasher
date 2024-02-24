@@ -72,35 +72,35 @@ class LevelState(GameState):
                 for col in line:
                     if currentLayer == "main":
                         if col == "B":  # block
-                            blockArr.append(PhysChar(self.game, x, y, None, None, 0.85, 0, 139, 69, 19))
+                            blockArr.append(PhysChar(self.game, (x, y), 0.85, 0))
                         if col == "P": # player
                             self.playerArr.append((x, y))
                         if col == "R": # Redbull
-                            blockArr.append(PhysChar(self.game, x, y, None, None, 1.05, 0, 255, 0, 0))
+                            blockArr.append(PhysChar(self.game, (x, y), 1.05, 0))
                         if col == "S": # Sludge
-                            blockArr.append(PhysChar(self.game, x, y, None, None, 0.75, 0.2, 0, 255, 0))
+                            blockArr.append(PhysChar(self.game, (x, y), 0.75, 0.2))
                         if col == "I": # Ice
-                            blockArr.append(PhysChar(self.game, x, y, None, None, 1, 0, 0, 0, 255))
+                            blockArr.append(PhysChar(self.game, (x, y), 1, 0))
                         if col == "G": # Granite
-                            blockArr.append(PhysChar(self.game, x, y, None, None, 0.85, 0.3, 100, 100, 100))
+                            blockArr.append(PhysChar(self.game, (x, y), 0.85, 0.3))
                         if col == "J": # JumpPad
-                            blockArr.append(PhysChar(self.game, x, y, None, None, 0.85, 1, 255, 0, 255))
+                            blockArr.append(PhysChar(self.game, (x, y), 0.85, 1))
                         if col == "F": # Fallthrough
-                            fallthroughArr.append(FallThrough(self.game, x, y))
+                            fallthroughArr.append(FallThrough(self.game, (x, y)))
                         if col == "<": # conveyor left
-                            blockArr.append(Conveyor(self.game, x, y, "left", 1))
+                            blockArr.append(Conveyor(self.game, (x, y), "left", 1))
                         if col == ">": # conveyor right
-                            blockArr.append(Conveyor(self.game, x, y, "right", 1))
+                            blockArr.append(Conveyor(self.game, (x, y), "right", 1))
                         if col == "^": # conveyor up
-                            blockArr.append(Conveyor(self.game, x, y, "up", 20))
+                            blockArr.append(Conveyor(self.game, (x, y), "up", 20))
                         if col == "V": # conveyor down
-                            blockArr.append(Conveyor(self.game, x, y, "down", 10))
+                            blockArr.append(Conveyor(self.game, (x, y), "down", 10))
                         if col == "W": # water
-                            liquidArr.append(Liquid(self.game, x, y, 0, 70, 255, 70, 0.98, 0.7))
+                            liquidArr.append(Liquid(self.game, (x, y), 0, 70, 255, 70, 0.98, 0.7))
                         if col == "L": # ladder
-                            liquidArr.append(Liquid(self.game, x, y, 255, 255, 0, 150, 0.98, 0.6))
+                            liquidArr.append(Liquid(self.game, (x, y), 255, 255, 0, 150, 0.98, 0.6))
                         if col == "C": # concrete
-                            liquidArr.append(Liquid(self.game, x, y, 255, 255, 255, 150, 0.94, 0.5999))
+                            liquidArr.append(Liquid(self.game, (x, y), 255, 255, 255, 150, 0.94, 0.5999))
                         if col == "@": # button
                             self.buttonArr.append((x, y))
                         if col == "E":

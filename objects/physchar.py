@@ -1,17 +1,19 @@
 import pygame
 import math
 from core.vector import Vector
+from core.spritesheet import SpriteSheet
 
 class PhysChar(pygame.sprite.Sprite):
-    def __init__(self, game, xpos = 0, ypos = 0, width = None, height = None, fric = 0.95, elas = 1, red = 0, green = 255, blue = 255):
+    def __init__(self, game, pos = (0,0), fric = 0.95, elas = 1):
         super(PhysChar, self).__init__()
         self.game = game
+        self.sheet = SpriteSheet("./sprites/brick.png")
         # rendering
-        self.width = width if width is not None else game.block_size # because width height params can't see Game class
-        self.height = height if height is not None else game.block_size
-        self.surf = pygame.Surface((self.width, self.height))
-        self.surf.fill((red, green, blue))
-        self.rect = self.surf.get_rect(center = (xpos, ypos))
+        self.width = game.block_size 
+        self.height = game.block_size
+        self.surf = self.sheet.image_at(0, self.width, self.height)
+        self.rect = self.surf.get_rect(center=pos)
+
         # physics
         self.velocity = Vector(0, 0)
         self.friction = fric
