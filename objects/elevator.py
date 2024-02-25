@@ -3,7 +3,7 @@ from core.vector import Vector
 
 class Elevator(PhysChar):
     def __init__(self, game, position, next = (0, 0), speed = 1):
-        super().__init__(game, position, 0.80, 0)
+        super().__init__(game, position, "./sprites/error.png", False, False, 0.80, 0)
         self.speedMult = speed
         self.velocity = Vector(0, 0)
         self.position = (self.rect.centerx, self.rect.centery)

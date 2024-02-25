@@ -7,7 +7,7 @@ class Conveyor(PhysChar): #1-left, 2-right, 3-up, 4-down
         self.direction = direct
         self.speed = speedCon
         self.game = game
-        super().__init__(game, pos, 0.92, 0)
+        super().__init__(game, pos, "./sprites/error.png", False, False, 0.92, 0)
 
     def onTop(self, pc):
         super().onTop(pc)

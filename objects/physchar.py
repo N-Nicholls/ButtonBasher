@@ -2,9 +2,10 @@ import pygame
 import math
 from core.vector import Vector
 from core.spritesheet import SpriteSheet
+import random
 
 class PhysChar(pygame.sprite.Sprite):
-    def __init__(self, game, pos = (0,0), fric = 0.95, elas = 1, sheetPath = "./sprites/error.png"):
+    def __init__(self, game, pos = (0,0), sheetPath = "./sprites/error.png", randHor = False, randVert = False, fric = 0.95, elas = 1):
         super(PhysChar, self).__init__()
         self.game = game
         self.sheet = SpriteSheet(sheetPath)
@@ -13,7 +14,16 @@ class PhysChar(pygame.sprite.Sprite):
         self.height = game.block_size
         self.surf = self.sheet.image_at(0, self.width, self.height)
         self.rect = self.surf.get_rect(center=pos)
-
+        if randHor:
+            choice1 = random.randint(0, 1)
+            if choice1 == 0:
+                self.surf = pygame.transform.flip(self.surf, True, False)
+                self.rect.y -1
+        if randVert:
+            choice2 = random.randint(0, 1)
+            if choice2 == 0:
+                self.surf = pygame.transform.flip(self.surf, False, True)
+            
         # physics
         self.velocity = Vector(0, 0)
         self.friction = fric
@@ -23,6 +33,7 @@ class PhysChar(pygame.sprite.Sprite):
         self.in_liquid = False
         # effects
         self.gravity = Vector(0, 0.6)
+        self.maxSpeed = 10
 
     def update(self):
         # effects
@@ -50,6 +61,8 @@ class PhysChar(pygame.sprite.Sprite):
         self.rect.y += dy
 
         for block in self.game.state.blocks:
+            if self.rect.colliderect(block.rect) and block.returnSubclass() == "spike":
+                block.onTop(self)
             if self.rect.colliderect(block.rect) and block.passable == 0: 
                     if dx > 0: # moving right
                         self.rect.right = block.rect.left
@@ -69,8 +82,13 @@ class PhysChar(pygame.sprite.Sprite):
         for liquid in self.game.state.liquids:
             if self.rect.colliderect(liquid.rect):
                 liquid.inside(self)
+        if self.returnSubclass() == "enemy": # enemy collision, could later have diff collision stuff than just death
+            for player in self.game.state.player:
+                if self.rect.colliderect(player.rect):
+                    self.game.state.gibbed((player.rect.x, player.rect.y), 15)
+                    player.kill()
         for mobile in self.game.state.mobiles:
-            if self.rect.colliderect(mobile.rect) and mobile.passable == 0 and self.rect != mobile.rect:
+            if self.rect.colliderect(mobile.rect) and mobile.passable == 0 and self.rect != mobile.rect and self.returnSubclass() is not "gib":
                     if dx > 0: # moving right
                         self.rect.right = mobile.rect.left
                         mobile.onLeft(self)
@@ -83,13 +101,6 @@ class PhysChar(pygame.sprite.Sprite):
                     if dy < 0: # moving up
                         self.rect.top = mobile.rect.bottom
                         mobile.onBottom(self)
-
-        if self.returnSubclass() == "enemy": # enemy collision, could later have diff collision stuff than just death
-            for player in self.game.state.player:
-                if self.rect.colliderect(player.rect):
-                    player.kill()
-
-
 
     def onTop(self, pc):
         pc.on_ground = 3

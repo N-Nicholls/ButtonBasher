@@ -8,6 +8,8 @@ from objects.elevator import Elevator
 from objects.enemy import Enemy
 from objects.button import Button
 from objects.spike import Spike
+from objects.gib import Gib
+
 import pygame
 import random
 
@@ -27,6 +29,7 @@ class LevelState(GameState):
         self.enemies = pygame.sprite.Group() # called for pathfinding and movement
         self.mobiles = pygame.sprite.Group() # for generic moving block collision, like elevators, shouldn't be called to move
         self.buttons = pygame.sprite.Group()
+        self.gibs = pygame.sprite.Group()
         
         self.controls = controls
         self.parseLevel(level_file, game)
@@ -73,19 +76,19 @@ class LevelState(GameState):
                 for col in line:
                     if currentLayer == "main":
                         if col == "B":  # block
-                            blockArr.append(PhysChar(self.game, (x, y), 0.85, 0, "./sprites/brick.png"))
+                            blockArr.append(PhysChar(self.game, (x, y), "./sprites/brick.png", True, False, 0.85, 0, ))
                         if col == "P": # player
                             self.playerArr.append((x, y))
                         if col == "R": # Redbull
-                            blockArr.append(PhysChar(self.game, (x, y), 1.05, 0))
+                            blockArr.append(PhysChar(self.game, (x, y), "./sprites/error.png", False, False, 1.05, 0))
                         if col == "S": # Sludge
-                            blockArr.append(PhysChar(self.game, (x, y), 0.75, 0.2, "./sprites/sludge.png"))
+                            blockArr.append(PhysChar(self.game, (x, y), "./sprites/sludge.png", True, False, 0.75, 0.2, ))
                         if col == "I": # Ice
-                            blockArr.append(PhysChar(self.game, (x, y), 1, 0, "./sprites/ice.png"))
+                            blockArr.append(PhysChar(self.game, (x, y), "./sprites/ice.png", True, False, 1, 0, ))
                         if col == "G": # Granite
-                            blockArr.append(PhysChar(self.game, (x, y), 0.85, 0.3))
+                            blockArr.append(PhysChar(self.game, (x, y), "./sprites/error.png", False, False, 0.85, 0.3))
                         if col == "J": # JumpPad
-                            blockArr.append(PhysChar(self.game, (x, y), 0.85, 1, "./sprites/jump.png"))
+                            blockArr.append(PhysChar(self.game, (x, y), "./sprites/jump.png", False, True, 0.85, 1, ))
                         if col == "F": # Fallthrough
                             fallthroughArr.append(FallThrough(self.game, (x, y)))
                         if col == "<": # conveyor left
@@ -101,7 +104,7 @@ class LevelState(GameState):
                         if col == "L": # ladder
                             liquidArr.append(Liquid(self.game, (x, y), 255, 255, 0, 150, 0.98, 0.6))
                         if col == "C": # concrete
-                            liquidArr.append(Liquid(self.game, (x, y), 255, 255, 255, 150, 0.94, 0.5999))
+                            liquidArr.append(Liquid(self.game, (x, y), 220, 190, 0, 150, 0.94, 0.5999))
                         if col == "@": # button
                             self.buttonArr.append((x, y))
                         if col == "E":
@@ -159,6 +162,13 @@ class LevelState(GameState):
         self.mobiles.add(temp)
         self.all_sprites.add(temp)
 
+    def gibbed(self, pos, intensity):
+        for _ in range(intensity):
+            temp = Gib(self.game, (pos))
+            self.gibs.add(temp)
+            self.all_sprites.add(temp)
+
+
     def handleEvents(self, events): 
         pressed_keys = pygame.key.get_pressed()
         for event in events:
@@ -171,12 +181,13 @@ class LevelState(GameState):
             if pressed_keys[self.game.controls['player']] and self.COOLDOWN == 0:
                 self.spawnPlayer()
                 self.COOLDOWN = 3
-            elif event.type == self.ADDENEMY:
+            if event.type == self.ADDENEMY:
                 # self.spawnEnemy()
                 pass
 
     def update(self):
         pressed_keys = pygame.key.get_pressed()
+        self.gibs.update() # gib stuff
         self.player.update(pressed_keys) # player physics and movement
         self.elevator.update() # timer for elevators
         self.fallthrough.update() # timer for fallthrough blocks
