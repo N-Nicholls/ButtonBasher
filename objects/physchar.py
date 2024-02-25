@@ -4,10 +4,10 @@ from core.vector import Vector
 from core.spritesheet import SpriteSheet
 
 class PhysChar(pygame.sprite.Sprite):
-    def __init__(self, game, pos = (0,0), fric = 0.95, elas = 1):
+    def __init__(self, game, pos = (0,0), fric = 0.95, elas = 1, sheetPath = "./sprites/error.png"):
         super(PhysChar, self).__init__()
         self.game = game
-        self.sheet = SpriteSheet("./sprites/brick.png")
+        self.sheet = SpriteSheet(sheetPath)
         # rendering
         self.width = game.block_size 
         self.height = game.block_size
@@ -50,7 +50,7 @@ class PhysChar(pygame.sprite.Sprite):
         self.rect.y += dy
 
         for block in self.game.state.blocks:
-            if self.rect.colliderect(block.rect) and block.passable == 0:
+            if self.rect.colliderect(block.rect) and block.passable == 0: 
                     if dx > 0: # moving right
                         self.rect.right = block.rect.left
                         block.onLeft(self)

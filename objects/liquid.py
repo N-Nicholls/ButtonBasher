@@ -7,7 +7,7 @@ class Liquid(pygame.sprite.Sprite):
 
     def __init__(self, game, pos, red = 0, green = 0, blue = 255, alpha = 100, vis = 1, buoy = 0):
         super(Liquid, self).__init__()
-        self.surf = pygame.Surface((game.block_size, game.block_size))
+        self.surf = pygame.Surface((game.block_size, game.block_size)).convert_alpha()
         self.surf.fill((red, green, blue))
         self.rect = self.surf.get_rect(center = pos)
         self.surf.set_alpha(alpha)

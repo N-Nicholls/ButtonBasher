@@ -1,15 +1,16 @@
 from core.vector import Vector
 from objects.physchar import PhysChar
-from core.spritesheet import SpriteSheet
+import pygame
 
 # phys obj that can be controlled
 class Player(PhysChar):
 
     def __init__(self, game, controls, pos):
-        super().__init__(game, pos)
+        super().__init__(game, pos, 0.95, 1, "./sprites/player.png")
         self.controls = controls
         self.maxSpeed = 10 # max speed for adding movement
         self.jump_mult = 1
+        self.direction = 1
     
     def update(self, pressed_keys):
         # movement
@@ -23,9 +24,15 @@ class Player(PhysChar):
         if self.controls[self.game.controls['up']] and self.in_liquid == 1 and self.velocity.y > -self.maxSpeed:
             self.velocity += Vector(0, -1)
         if self.controls[self.game.controls['left']] and self.velocity.x > -self.maxSpeed:
+            if self.direction != -1:
+                self.surf = pygame.transform.flip(self.surf, True, False)
+                self.direction *= -1
             self.velocity += Vector(-1, 0)
         if self.controls[self.game.controls['right']] and self.velocity.x < self.maxSpeed:
             self.velocity += Vector(1, 0)
+            if self.direction != 1:
+                self.surf = pygame.transform.flip(self.surf, True, False)
+                self.direction *= -1
         super().update()
 
     def printStuff(self):

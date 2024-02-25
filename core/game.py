@@ -62,9 +62,9 @@ class Game():
                 if event.type == pygame.QUIT:
                     self.running = False
         
+            self.state.draw(self.screen)
             self.state.handleEvents(events)
             self.state.update()
-            self.state.draw(self.screen)
 
             pygame.display.flip()
             self.clock.tick(self.frame_rate)

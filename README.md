@@ -11,15 +11,17 @@ of survival.
 - Objects (static)
     - lava
 - Objects (Scene)
-    - textures
+    - textures 
 - Objects (dynamic)
     - doors
-    - buttons
-    - elevator
+    - buttons, textures, direction, framerate
+    - elevator nodes
     - enemies (toad)
     - enemies (mimic)
     - enemies (shooting)
     - enemies (roblox zombie)
+    - enemies (slimes)
+        - effects, block layers
 - UI
     - timer
     - status effect counter

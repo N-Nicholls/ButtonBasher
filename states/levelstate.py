@@ -7,6 +7,7 @@ from objects.conveyor import Conveyor
 from objects.elevator import Elevator
 from objects.enemy import Enemy
 from objects.button import Button
+from objects.spike import Spike
 import pygame
 import random
 
@@ -72,19 +73,19 @@ class LevelState(GameState):
                 for col in line:
                     if currentLayer == "main":
                         if col == "B":  # block
-                            blockArr.append(PhysChar(self.game, (x, y), 0.85, 0))
+                            blockArr.append(PhysChar(self.game, (x, y), 0.85, 0, "./sprites/brick.png"))
                         if col == "P": # player
                             self.playerArr.append((x, y))
                         if col == "R": # Redbull
                             blockArr.append(PhysChar(self.game, (x, y), 1.05, 0))
                         if col == "S": # Sludge
-                            blockArr.append(PhysChar(self.game, (x, y), 0.75, 0.2))
+                            blockArr.append(PhysChar(self.game, (x, y), 0.75, 0.2, "./sprites/sludge.png"))
                         if col == "I": # Ice
-                            blockArr.append(PhysChar(self.game, (x, y), 1, 0))
+                            blockArr.append(PhysChar(self.game, (x, y), 1, 0, "./sprites/ice.png"))
                         if col == "G": # Granite
                             blockArr.append(PhysChar(self.game, (x, y), 0.85, 0.3))
                         if col == "J": # JumpPad
-                            blockArr.append(PhysChar(self.game, (x, y), 0.85, 1))
+                            blockArr.append(PhysChar(self.game, (x, y), 0.85, 1, "./sprites/jump.png"))
                         if col == "F": # Fallthrough
                             fallthroughArr.append(FallThrough(self.game, (x, y)))
                         if col == "<": # conveyor left
@@ -105,6 +106,8 @@ class LevelState(GameState):
                             self.buttonArr.append((x, y))
                         if col == "E":
                             self.enemyArr.append((x, y))
+                        if col == "7":
+                            blockArr.append(Spike(self.game, (x,y)))
                     elif currentLayer == "elevator":
                         if col.isdigit():
                             temp[int(col)] = (x, y)
