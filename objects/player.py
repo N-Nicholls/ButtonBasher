@@ -8,7 +8,7 @@ class Player(PhysChar):
     def __init__(self, game, controls, pos):
         super().__init__(game, pos, "./sprites/player1-sheet.png", False, False, 0.95, 1, )
         self.controls = controls
-        self.maxSpeed = 10 # max speed for adding movement
+        self.maxSpeed = 7 # max speed for adding movement
         self.jump_mult = 1
 
 
@@ -35,7 +35,7 @@ class Player(PhysChar):
         if self.controls[self.game.controls['down']] and self.velocity.y < self.maxSpeed:
             self.velocity += Vector(0, 1)
         if self.controls[self.game.controls['up']] and self.on_ground > 0 and self.velocity.y > -self.maxSpeed:
-            self.velocity += Vector(0, -10 * self.jump_mult)
+            self.velocity += Vector(0, -7 * self.jump_mult)
         if self.controls[self.game.controls['up']] and self.in_liquid == 1 and self.velocity.y > -self.maxSpeed:
             self.velocity += Vector(0, -1)
         if self.controls[self.game.controls['left']] and self.velocity.x > -self.maxSpeed:

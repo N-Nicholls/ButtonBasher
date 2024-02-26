@@ -8,7 +8,8 @@ from objects.elevator import Elevator
 from objects.enemy import Enemy
 from objects.button import Button
 from objects.spike import Spike
-from objects.gib import Gib
+from effects.gib import Gib
+from effects.sword import Sword
 
 import pygame
 import random
@@ -30,6 +31,7 @@ class LevelState(GameState):
         self.mobiles = pygame.sprite.Group() # for generic moving block collision, like elevators, shouldn't be called to move
         self.buttons = pygame.sprite.Group()
         self.gibs = pygame.sprite.Group()
+        self.conveyor = pygame.sprite.Group() # just to update the sprite, probably not efficient
         
         self.controls = controls
         self.parseLevel(level_file, game)
@@ -45,6 +47,7 @@ class LevelState(GameState):
         fallthroughArr = []
         liquidArr = []
         elevArr = []
+        convArr = []
 
         # spawn points
         self.playerArr = []
@@ -80,31 +83,31 @@ class LevelState(GameState):
                         if col == "P": # player
                             self.playerArr.append((x, y))
                         if col == "R": # Redbull
-                            blockArr.append(PhysChar(self.game, (x, y), "./sprites/error.png", False, False, 1.05, 0))
+                            blockArr.append(PhysChar(self.game, (x, y), "./sprites/redbull.png", True, False, 1.05, 0))
                         if col == "S": # Sludge
                             blockArr.append(PhysChar(self.game, (x, y), "./sprites/sludge.png", True, False, 0.75, 0.2, ))
                         if col == "I": # Ice
                             blockArr.append(PhysChar(self.game, (x, y), "./sprites/ice.png", True, False, 1, 0, ))
                         if col == "G": # Granite
-                            blockArr.append(PhysChar(self.game, (x, y), "./sprites/error.png", False, False, 0.85, 0.3))
+                            blockArr.append(PhysChar(self.game, (x, y), "./sprites/granite.png", True, True, 0.85, 0.3))
                         if col == "J": # JumpPad
                             blockArr.append(PhysChar(self.game, (x, y), "./sprites/jump.png", False, True, 0.85, 1, ))
                         if col == "F": # Fallthrough
                             fallthroughArr.append(FallThrough(self.game, (x, y)))
                         if col == "<": # conveyor left
-                            blockArr.append(Conveyor(self.game, (x, y), "left", 1))
+                            convArr.append(Conveyor(self.game, (x, y), "left", 1))
                         if col == ">": # conveyor right
-                            blockArr.append(Conveyor(self.game, (x, y), "right", 1))
+                            convArr.append(Conveyor(self.game, (x, y), "right", 1))
                         if col == "^": # conveyor up
-                            blockArr.append(Conveyor(self.game, (x, y), "up", 20))
+                            convArr.append(Conveyor(self.game, (x, y), "up", 20))
                         if col == "V": # conveyor down
-                            blockArr.append(Conveyor(self.game, (x, y), "down", 10))
+                            convArr.append(Conveyor(self.game, (x, y), "down", 10))
                         if col == "W": # water
-                            liquidArr.append(Liquid(self.game, (x, y), 0, 70, 255, 70, 0.98, 0.7))
+                            liquidArr.append(Liquid(self.game, (x, y), "./sprites/error.png", False, False, 70, 0.98, 0.7))
                         if col == "L": # ladder
-                            liquidArr.append(Liquid(self.game, (x, y), 255, 255, 0, 150, 0.98, 0.6))
+                            liquidArr.append(Liquid(self.game, (x, y), "./sprites/ladder.png", False, False, 150, 0.94, 0.6))
                         if col == "C": # concrete
-                            liquidArr.append(Liquid(self.game, (x, y), 220, 190, 0, 150, 0.94, 0.5999))
+                            liquidArr.append(Liquid(self.game, (x, y), "./sprites/error.png", False, False, 150, 0.94, 0.5999))
                         if col == "@": # button
                             self.buttonArr.append((x, y))
                         if col == "E":
@@ -139,6 +142,10 @@ class LevelState(GameState):
             self.elevator.add(elements)
             self.blocks.add(elements)
             self.all_sprites.add(elements)
+        for elements in convArr:
+            self.blocks.add(elements)
+            self.conveyor.add(elements)
+            self.all_sprites.add(elements)
         
 
     def spawnEnemy(self):
@@ -168,6 +175,10 @@ class LevelState(GameState):
             self.gibs.add(temp)
             self.all_sprites.add(temp)
 
+    def sword(self, pos, direction):
+        temp = Sword(self.game, pos, direction)
+        self.gibs.add(temp)
+        self.all_sprites.add(temp)
 
     def handleEvents(self, events): 
         pressed_keys = pygame.key.get_pressed()
@@ -193,6 +204,7 @@ class LevelState(GameState):
         self.fallthrough.update() # timer for fallthrough blocks
         self.enemies.update() # enemy movement and collision
         self.buttons.update()
+        self.conveyor.update()
         if self.COOLDOWN > 0:
             self.COOLDOWN -= 1
 

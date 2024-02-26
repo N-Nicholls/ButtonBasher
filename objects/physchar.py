@@ -85,6 +85,7 @@ class PhysChar(pygame.sprite.Sprite):
         if self.returnSubclass() == "enemy": # enemy collision, could later have diff collision stuff than just death
             for player in self.game.state.player:
                 if self.rect.colliderect(player.rect):
+                    self.game.state.sword((self.rect.x, self.rect.y), self.direction)
                     self.game.state.gibbed((player.rect.x, player.rect.y), 15)
                     player.kill()
         for mobile in self.game.state.mobiles:
