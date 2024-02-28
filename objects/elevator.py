@@ -13,6 +13,7 @@ class Elevator(PhysChar):
         self.next = self.path[0]
         self.index = 0
         self.coolDown = 0
+        self.isNode = True
 
 
     def update(self):
@@ -20,6 +21,8 @@ class Elevator(PhysChar):
         if self.coolDown > 0:
             self.coolDown -= 1
         if self.position == self.next:
+            if self.isNode == False:
+                self.coolDown += 1
             self.coolDown = self.game.frame_rate/4
             self.next = self.path[self.index]
             if self.index == len(self.path)-1:
@@ -33,6 +36,7 @@ class Elevator(PhysChar):
         self.path.append(pos)
 
     def addBranch(self, other):
+        other.isNode = False
         # Assuming you want to offset each new position by a fixed amount
         offset_x = -self.path[0][0] + other.path[0][0]
         offset_y = -self.path[0][1] + other.path[0][1]

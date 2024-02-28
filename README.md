@@ -49,3 +49,6 @@ Pros/Cons to having gibs as composition function of levelState:
 - Cons:
     - Will need to rewrite gibbed function (not gibbed class) for each state, but this gives us more control
     - Not tied to object, exists on its own
+
+Note:
+    - Elevators are fucked

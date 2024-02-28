@@ -61,8 +61,8 @@ class LevelState(GameState):
 
         # World is 1920x1080, each block is 30x30, so 64x36 blocks
         temp = [None, None, None, None, None, None, None, None, None, None] # for elevators
-        temp2 = [None, None, None, None, None, None, None, None, None, None]
-        temp2Index = 0
+        temp2 = []
+        # temp2Index = 0
         with open(levelFile, 'r') as file:
             lines = file.readlines()
         for line in lines:
@@ -125,19 +125,20 @@ class LevelState(GameState):
                         if col.isdigit():
                             temp[int(col)] = (x, y)
                         if col == "o":
-                            temp2[temp2Index] = (x,y)
-                            temp2Index += 1
+                            # temp2[temp2Index] = (x,y)
+                            temp2.append((x, y))
+                            # temp2Index += 1
                     elif currentLayer == "enemy":
                         pass
                     if temp[0] and prevLayer == "elevator":
                         prevLayer = None
-                        temp2Index = 0
+                        # temp2Index = 0
                         elevArr.append(Elevator(self.game, temp[0], 1))
                         for i in range(1, 10):
                             if temp[i]: # and i is not 0:
                                 elevArr[-1].addPath(temp[i])
                                 temp[i] = None
-                        for j in range(0, 10):
+                        for j in range(0, len(temp2)):
                             if temp2[j]:
                                 elevArr2.append(Elevator(self.game, temp2[j], 1))
                                 elevArr[-1].addBranch(elevArr2[-1])
