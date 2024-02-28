@@ -58,8 +58,8 @@ class Player(PhysChar):
         formatted_in_liquid = str(self.in_liquid).ljust(5)  # 'True ' or 'False'
         
         # Use formatted string literals with fixed spacing
-        print(f"xpos: {self.rect.x:<4} ypos: {self.rect.y:<4} velocity: {formatted_velocity:<15} on ground: {formatted_on_ground} in liquid: {formatted_in_liquid}" + " Jump Mult:" + str(self.jump_mult) + " Frame:" + str((self.frame%6)+1))
-
+        # print(f"xpos: {self.rect.x:<4} ypos: {self.rect.y:<4} velocity: {formatted_velocity:<15} on ground: {formatted_on_ground} in liquid: {formatted_in_liquid}" + " Jump Mult:" + str(self.jump_mult) + " Frame:" + str((self.frame%6)+1))
+        
     def returnSubclass(self):
         return "player"
     def returnMobile(self):

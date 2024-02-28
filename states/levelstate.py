@@ -42,11 +42,13 @@ class LevelState(GameState):
 
     def parseLevel(self, levelFile, game):
         currentLayer = None
+        prevLayer = None
         # arrays for accessing
         blockArr = []
         fallthroughArr = []
         liquidArr = []
         elevArr = []
+        elevArr2 = []
         convArr = []
 
         # spawn points
@@ -59,6 +61,8 @@ class LevelState(GameState):
 
         # World is 1920x1080, each block is 30x30, so 64x36 blocks
         temp = [None, None, None, None, None, None, None, None, None, None] # for elevators
+        temp2 = [None, None, None, None, None, None, None, None, None, None]
+        temp2Index = 0
         with open(levelFile, 'r') as file:
             lines = file.readlines()
         for line in lines:
@@ -69,6 +73,8 @@ class LevelState(GameState):
                 continue # Skip empty lines
 
             if words[0].lower() in ["main", "elevator", "enemy"]:
+                if currentLayer == "elevator":
+                    prevLayer = "elevator"
                 currentLayer = words[0].lower()
                 x, y = game.offset, game.offset
                 continue
@@ -115,18 +121,34 @@ class LevelState(GameState):
                         if col == "7":
                             blockArr.append(Spike(self.game, (x,y)))
                     elif currentLayer == "elevator":
+                        # print("found digits" + str(x) + ", " + str(y))
                         if col.isdigit():
                             temp[int(col)] = (x, y)
+                        if col == "o":
+                            temp2[temp2Index] = (x,y)
+                            temp2Index += 1
                     elif currentLayer == "enemy":
                         pass
+                    if temp[0] and prevLayer == "elevator":
+                        prevLayer = None
+                        temp2Index = 0
+                        elevArr.append(Elevator(self.game, temp[0], 1))
+                        for i in range(1, 10):
+                            if temp[i]: # and i is not 0:
+                                elevArr[-1].addPath(temp[i])
+                                temp[i] = None
+                        for j in range(0, 10):
+                            if temp2[j]:
+                                elevArr2.append(Elevator(self.game, temp2[j], 1))
+                                elevArr[-1].addBranch(elevArr2[-1])
+                                print("New Branch")
+                                temp2[j] = None
+                        # node = None
+
                     x += game.block_size  # Move to the next block in the row
                 y += game.block_size  # Move to the next row
                 x = game.offset  # Reset x to the start of the next row
-            for i in range(0, 10):
-                if temp[i] and temp[i+1]:
-                    elevArr.append(Elevator(self.game, temp[i], temp[i+1], 1))
-                    temp[i] = None
-                    temp[i+1] = None
+            
 
         for elements in blockArr:
             self.blocks.add(elements)
@@ -139,6 +161,10 @@ class LevelState(GameState):
             self.liquids.add(elements)
             self.all_sprites.add(elements)
         for elements in elevArr:
+            self.elevator.add(elements)
+            self.blocks.add(elements)
+            self.all_sprites.add(elements)
+        for elements in elevArr2:
             self.elevator.add(elements)
             self.blocks.add(elements)
             self.all_sprites.add(elements)
@@ -169,16 +195,15 @@ class LevelState(GameState):
         self.mobiles.add(temp)
         self.all_sprites.add(temp)
 
-    def gibbed(self, pos, intensity):
-        for _ in range(intensity):
-            temp = Gib(self.game, (pos))
-            self.gibs.add(temp)
-            self.all_sprites.add(temp)
-
     def sword(self, pos, direction):
         temp = Sword(self.game, pos, direction)
         self.gibs.add(temp)
         self.all_sprites.add(temp)
+
+    def makeGib(self, pos):
+        temp = Gib(self.game, (pos))
+        self.gibs.add(temp)
+        self.all_sprites.add(temp) 
 
     def handleEvents(self, events): 
         pressed_keys = pygame.key.get_pressed()

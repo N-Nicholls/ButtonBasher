@@ -35,12 +35,23 @@ class PhysChar(pygame.sprite.Sprite):
         self.gravity = Vector(0, 0.6)
         self.maxSpeed = 10
 
+        self.position = (self.rect.x, self.rect.y)
+        self.prev = self.position
+
     def update(self):
         # effects
         self.velocity += self.gravity
         if self.on_ground > 0:
             self.on_ground -= 1
         self.in_liquid = False
+
+        if abs((self.position[0] - self.prev[0] +  self.position[1] - self.prev[1])/2) > 12 and abs(self.velocity) < 5 and self.returnSubclass is not "gib":
+            self.gibbed((self.rect.x, self.rect.y), 10)
+            self.kill()
+        self.prev = self.position
+        self.position = (self.rect.x, self.rect.y)
+        print(str(abs((self.position[0] - self.prev[0] +  self.position[1] - self.prev[1])/2)))
+
 
         # optimises calculations
         if math.fabs(self.velocity.x) < 0.02:
@@ -55,6 +66,15 @@ class PhysChar(pygame.sprite.Sprite):
     def move(self, dx, dy):
         self.moveSingleAxis(dx, 0)
         self.moveSingleAxis(0, dy)
+
+    def gibbed(self, pos, intensity):
+        if self.returnSubclass() == "gib":
+            return
+        else:   
+            for _ in range(intensity):
+                self.game.state.makeGib(pos)
+                
+
 
     def moveSingleAxis(self, dx, dy):
         self.rect.x += dx
@@ -86,7 +106,7 @@ class PhysChar(pygame.sprite.Sprite):
             for player in self.game.state.player:
                 if self.rect.colliderect(player.rect):
                     self.game.state.sword((self.rect.x, self.rect.y), self.direction)
-                    self.game.state.gibbed((player.rect.x, player.rect.y), 15)
+                    self.gibbed((player.rect.x, player.rect.y), 15)
                     player.kill()
         for mobile in self.game.state.mobiles:
             if self.rect.colliderect(mobile.rect) and mobile.passable == 0 and self.rect != mobile.rect and self.returnSubclass() is not "gib":
@@ -102,6 +122,7 @@ class PhysChar(pygame.sprite.Sprite):
                     if dy < 0: # moving up
                         self.rect.top = mobile.rect.bottom
                         mobile.onBottom(self)
+
 
     def onTop(self, pc):
         pc.on_ground = 3
