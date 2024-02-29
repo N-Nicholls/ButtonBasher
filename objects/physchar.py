@@ -45,6 +45,7 @@ class PhysChar(pygame.sprite.Sprite):
             self.on_ground -= 1
         self.in_liquid = False
 
+        # This could be a problem later, it checks for extreme sudden movements to simulate crushing
         if abs((self.position[0] - self.prev[0] +  self.position[1] - self.prev[1])/2) > 12 and abs(self.velocity) < 5 and self.returnSubclass is not "gib":
             self.gibbed((self.rect.x, self.rect.y), 10)
             self.kill()
@@ -67,6 +68,7 @@ class PhysChar(pygame.sprite.Sprite):
         self.moveSingleAxis(dx, 0)
         self.moveSingleAxis(0, dy)
 
+    # calls makeGib, exists as check to make sure thing calling isn't a gib itself
     def gibbed(self, pos, intensity):
         if self.returnSubclass() == "gib":
             return
@@ -74,7 +76,9 @@ class PhysChar(pygame.sprite.Sprite):
             for _ in range(intensity):
                 self.game.state.makeGib(pos)
                 
-
+    def setSheet(self, path):
+        self.sheet = SpriteSheet(path)
+        self.surf = self.sheet.image_at(0, self.width, self.height)
 
     def moveSingleAxis(self, dx, dy):
         self.rect.x += dx

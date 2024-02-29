@@ -18,6 +18,11 @@ class Elevator(PhysChar):
 
     def update(self):
         # print(f"cooldown: {self.coolDown} position: {self.position[0]}, {self.position[1]} target: {self.index - 1} target position: {self.next[0]}, {self.next[1]}")
+        if self.isNode == True:
+            self.passable = 1
+            self.surf.set_alpha(0)
+            self.setSheet("./sprites/error.png") # testing purposes
+        
         if self.coolDown > 0:
             self.coolDown -= 1
         if self.position == self.next:
@@ -53,11 +58,12 @@ class Elevator(PhysChar):
         self.moveSingleAxis(self.velocity.x, 0)
         self.moveSingleAxis(0, self.velocity.y)
 
+    # elevator moving checking collision with objects, results in movement of object
     def moveSingleAxis(self, dx, dy):
         self.rect.x += dx
         self.rect.y += dy
         for mobile in self.game.state.mobiles:
-            if self.rect.colliderect(mobile.rect) and mobile.passable == 0:
+            if self.rect.colliderect(mobile.rect) and self.passable == 0 and mobile.passable == 0:
                     if dx > 0: # moving right
                         # self.rect.right = mobile.rect.left
                         mobile.rect.left = self.rect.right

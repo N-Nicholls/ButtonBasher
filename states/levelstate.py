@@ -62,7 +62,6 @@ class LevelState(GameState):
         # World is 1920x1080, each block is 30x30, so 64x36 blocks
         temp = [None, None, None, None, None, None, None, None, None, None] # for elevators
         temp2 = []
-        # temp2Index = 0
         with open(levelFile, 'r') as file:
             lines = file.readlines()
         for line in lines:
@@ -118,16 +117,13 @@ class LevelState(GameState):
                             self.buttonArr.append((x, y))
                         if col == "E":
                             self.enemyArr.append((x, y))
-                        if col == "7":
+                        if col == "X":
                             blockArr.append(Spike(self.game, (x,y)))
                     elif currentLayer == "elevator":
-                        # print("found digits" + str(x) + ", " + str(y))
                         if col.isdigit():
                             temp[int(col)] = (x, y)
                         if col == "o":
-                            # temp2[temp2Index] = (x,y)
                             temp2.append((x, y))
-                            # temp2Index += 1
                     elif currentLayer == "enemy":
                         pass
                     if temp[0] and prevLayer == "elevator":
@@ -138,13 +134,13 @@ class LevelState(GameState):
                             if temp[i]: # and i is not 0:
                                 elevArr[-1].addPath(temp[i])
                                 temp[i] = None
+                        elevArr2.append(Elevator(self.game, elevArr[-1].position, 1)) # creates a copy of itself as a branch
+                        elevArr[-1].addBranch(elevArr2[-1])
                         for j in range(0, len(temp2)):
                             if temp2[j]:
                                 elevArr2.append(Elevator(self.game, temp2[j], 1))
                                 elevArr[-1].addBranch(elevArr2[-1])
-                                print("New Branch")
                                 temp2[j] = None
-                        # node = None
 
                     x += game.block_size  # Move to the next block in the row
                 y += game.block_size  # Move to the next row
