@@ -20,8 +20,7 @@ class Elevator(PhysChar):
         # print(f"cooldown: {self.coolDown} position: {self.position[0]}, {self.position[1]} target: {self.index - 1} target position: {self.next[0]}, {self.next[1]}")
         if self.isNode == True:
             self.passable = 1
-            self.surf.set_alpha(0)
-            self.setSheet("./sprites/error.png") # testing purposes
+            self.setSheet("./sprites/error.png", 1) # testing purposes
         
         if self.coolDown > 0:
             self.coolDown -= 1
@@ -67,15 +66,20 @@ class Elevator(PhysChar):
                     if dx > 0: # moving right
                         # self.rect.right = mobile.rect.left
                         mobile.rect.left = self.rect.right
+                        mobile.on_left = 2
                     if dx < 0: # moving left
                         # self.rect.left = mobile.rect.right
                         mobile.rect.right = self.rect.left
+                        mobile.on_right = 2
                     if dy > 0: # moving down
                         # self.rect.bottom = mobile.rect.top
                         mobile.rect.top = self.rect.bottom
+                        mobile.on_roof = 2
                     if dy < 0: # moving up
                         # self.rect.top = mobile.rect.bottom
                         mobile.rect.bottom = self.rect.top
+                        mobile.on_ground = 2
+                        mobile.jumps = mobile.jumpAmt
 
 
     def returnSubclass(self):

@@ -10,14 +10,16 @@ class Player(PhysChar):
         self.controls = controls
         self.maxSpeed = 7 # max speed for adding movement
         self.jump_mult = 1
-
-
+        self.canBreath = True
         self.direction = 1
         self.frame = 1
         self.frameDelay = 5
+        self.jumpAmt = 2
+
     def update(self, pressed_keys):
         # movement
-        self.printStuff()
+        self.printStuff() # debug
+
         # frame stuff
         if self.frameDelay == 5:
             self.frame += 1
@@ -30,12 +32,18 @@ class Player(PhysChar):
         if self.direction != 1:
             self.surf = pygame.transform.flip(self.surf, True, False)
 
-
         self.controls = pressed_keys
         if self.controls[self.game.controls['down']] and self.velocity.y < self.maxSpeed:
             self.velocity += Vector(0, 1)
         if self.controls[self.game.controls['up']] and self.on_ground > 0 and self.velocity.y > -self.maxSpeed:
             self.velocity += Vector(0, -7 * self.jump_mult)
+            self.jumpCooldown = 10
+        if self.controls[self.game.controls['up']] and self.jumps > 0 and self.jumpCooldown == 0 and self.in_liquid != 1 and self.velocity.y > -self.maxSpeed:
+            self.game.state.jet((self.rect.x, self.rect.y), self)
+            self.velocity.y = 0
+            self.velocity += Vector(0, -7) * 1.5
+            self.jumps -= 1
+            self.jumpCooldown = 10
         if self.controls[self.game.controls['up']] and self.in_liquid == 1 and self.velocity.y > -self.maxSpeed:
             self.velocity += Vector(0, -1)
         if self.controls[self.game.controls['left']] and self.velocity.x > -self.maxSpeed:
@@ -58,7 +66,9 @@ class Player(PhysChar):
         formatted_in_liquid = str(self.in_liquid).ljust(5)  # 'True ' or 'False'
         
         # Use formatted string literals with fixed spacing
-        # print(f"xpos: {self.rect.x:<4} ypos: {self.rect.y:<4} velocity: {formatted_velocity:<15} on ground: {formatted_on_ground} in liquid: {formatted_in_liquid}" + " Jump Mult:" + str(self.jump_mult) + " Frame:" + str((self.frame%6)+1))
+        print(f"xpos: {self.rect.x:<4} ypos: {self.rect.y:<4} velocity: {formatted_velocity:<15} on ground: {formatted_on_ground} in liquid: {formatted_in_liquid}" + " Jump Mult:" + str(self.jump_mult) + " Frame:" + str((self.frame%6)+1))
+        # print(f"Ground: {self.on_ground} Roof: {self.on_roof} Left:  {self.on_left} Right: {self.on_right}")
+        # print(f"Charges: {self.jumps} Cooldown: {self.jumpCooldown}")
         
     def returnSubclass(self):
         return "player"

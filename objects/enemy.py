@@ -12,7 +12,7 @@ class Enemy(PhysChar):
         x = [-1, 1]
         self.direction = random.choice(x)
         self.maxSpeed = 5
-
+        self.canBreath = True
         self.frameDelay = 5
         self.frame = 1
     

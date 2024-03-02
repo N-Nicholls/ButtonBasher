@@ -36,7 +36,7 @@ class Game():
         self.state = LevelState("./levels/level3.txt", self, self.controls) # should be more comprehensive later
 
     def load_controls(self, controls_config):
-        controls = {'right': pygame.K_l, 'left': pygame.K_QUOTE, 'up': pygame.K_p, 'down': pygame.K_SEMICOLON, 'escape': pygame.K_ESCAPE, 'enemy': pygame.K_1, 'button': pygame.K_2, 'player': pygame.K_3}
+        controls = {'right': pygame.K_l, 'left': pygame.K_QUOTE, 'up': pygame.K_p, 'down': pygame.K_SEMICOLON, 'escape': pygame.K_ESCAPE, 'enemy': pygame.K_1, 'button': pygame.K_2, 'player': pygame.K_3, 'slime': pygame.K_4}
         for action, key_name in controls_config.items():
             if isinstance(key_name, str):
                 if hasattr(pygame, key_name):

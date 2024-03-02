@@ -7,7 +7,7 @@ from core.spritesheet import SpriteSheet
 # because then you stop moving after awhile and gravity doesn't work. So you maintain speed inside
 class Liquid(pygame.sprite.Sprite):
 
-    def __init__(self, game, pos, sheetPath = "./sprites/error.png", randHor = False, randVert = False, alpha = 100,  vis = 1, buoy = 0):
+    def __init__(self, game, pos, sheetPath = "./sprites/error.png", randHor = False, randVert = False, alpha = 100,  vis = 1, buoy = 0, drownable = True):
         super(Liquid, self).__init__()
         self.sheet = SpriteSheet(sheetPath)
         self.game = game
@@ -25,12 +25,14 @@ class Liquid(pygame.sprite.Sprite):
             if choice2 == 0:
                 self.surf = pygame.transform.flip(self.surf, False, True)
         self.surf.set_alpha(alpha)
-
+        self.drownable = drownable
         self.viscosity = vis
         self.buoyantForce = buoy
 
 
     def inside(self, pc):
         pc.in_liquid = True
+        if self.drownable:
+            pc.drowning = True
         pc.velocity *= self.viscosity
         pc.velocity += pc.gravity - Vector(0, self.buoyantForce)

@@ -5,7 +5,7 @@ from core.spritesheet import SpriteSheet
 import random
 
 class PhysChar(pygame.sprite.Sprite):
-    def __init__(self, game, pos = (0,0), sheetPath = "./sprites/error.png", randHor = False, randVert = False, fric = 0.95, elas = 1):
+    def __init__(self, game, pos = (0,0), sheetPath = "./sprites/error.png", randHor = False, randVert = False, fric = 0.95, elas = 1, coverable = False):
         super(PhysChar, self).__init__()
         self.game = game
         self.sheet = SpriteSheet(sheetPath)
@@ -24,35 +24,72 @@ class PhysChar(pygame.sprite.Sprite):
             if choice2 == 0:
                 self.surf = pygame.transform.flip(self.surf, False, True)
             
-        # physics
+        # physics/collision
         self.velocity = Vector(0, 0)
         self.friction = fric
         self.elasticity = elas
         self.passable = 0
         self.on_ground = 0
         self.in_liquid = False
-        # effects
+        self.drowning = False # used to be in_liquid, but now in_liquid doesn't dictate drowning so this does
+        self.on_left = 0
+        self.on_right = 0
+        self.on_roof = 0
         self.gravity = Vector(0, 0.6)
-        self.maxSpeed = 10
 
-        self.position = (self.rect.x, self.rect.y)
-        self.prev = self.position
+        # effects
+        self.maxSpeed = 10
+        self.breath = 10 * self.game.frame_rate # ten seconds
+        self.canBreath = False
+
+        # slime effects
+        self.coverable = coverable
+        self.temp_fric = None
+        self.temp_elas = None
+        self.covered_top = None
+        self.top_coolDown = 0
+
+        # player jump functions
+        self.jumps = 1
+        self.jumpAmt = 1
+        self.jumpCooldown = 10
+
 
     def update(self):
+        if self.canBreath:
+            if self.drowning:
+                if self.breath <= 0:
+                    self.die(10)
+                else:
+                    self.breath -= 1
+            else:
+                if self.breath >= 10 * self.game.frame_rate:
+                    self.breath = 10 * self.game.frame_rate
+                else:
+                    self.breath += 1
+            # print(self.breath)
+
+
         # effects
         self.velocity += self.gravity
         if self.on_ground > 0:
             self.on_ground -= 1
         self.in_liquid = False
+        self.drowning = False
+        if self.on_left > 0:
+            self.on_left -= 1
+        if self.on_right > 0:
+            self.on_right -= 1
+        if self.on_roof > 0:
+            self.on_roof -= 1
+        
+        if self.jumpCooldown > 0:
+            self.jumpCooldown -= 1
 
-        # This could be a problem later, it checks for extreme sudden movements to simulate crushing
-        if abs((self.position[0] - self.prev[0] +  self.position[1] - self.prev[1])/2) > 12 and abs(self.velocity) < 5 and self.returnSubclass is not "gib":
-            self.gibbed((self.rect.x, self.rect.y), 10)
-            self.kill()
-        self.prev = self.position
-        self.position = (self.rect.x, self.rect.y)
-        print(str(abs((self.position[0] - self.prev[0] +  self.position[1] - self.prev[1])/2)))
-
+        if self.on_roof and self.on_ground > 0:
+            self.die(10)
+        if self.on_left and self.on_right > 0:
+            self.die(10)
 
         # optimises calculations
         if math.fabs(self.velocity.x) < 0.02:
@@ -68,17 +105,17 @@ class PhysChar(pygame.sprite.Sprite):
         self.moveSingleAxis(dx, 0)
         self.moveSingleAxis(0, dy)
 
-    # calls makeGib, exists as check to make sure thing calling isn't a gib itself
+    # calls gibbed, exists as check to make sure thing calling isn't a gib itself
     def gibbed(self, pos, intensity):
         if self.returnSubclass() == "gib":
             return
         else:   
             for _ in range(intensity):
-                self.game.state.makeGib(pos)
+                self.game.state.gibbed(pos)
                 
-    def setSheet(self, path):
+    def setSheet(self, path, frame = 0):
         self.sheet = SpriteSheet(path)
-        self.surf = self.sheet.image_at(0, self.width, self.height)
+        self.surf = self.sheet.image_at(frame, self.width, self.height)
 
     def moveSingleAxis(self, dx, dy):
         self.rect.x += dx
@@ -110,10 +147,9 @@ class PhysChar(pygame.sprite.Sprite):
             for player in self.game.state.player:
                 if self.rect.colliderect(player.rect):
                     self.game.state.sword((self.rect.x, self.rect.y), self.direction)
-                    self.gibbed((player.rect.x, player.rect.y), 15)
-                    player.kill()
+                    player.die(10)
         for mobile in self.game.state.mobiles:
-            if self.rect.colliderect(mobile.rect) and mobile.passable == 0 and self.rect != mobile.rect and self.returnSubclass() is not "gib":
+            if self.rect.colliderect(mobile.rect) and mobile.passable == 0 and self.rect != mobile.rect and self.returnSubclass() != "gib":
                     if dx > 0: # moving right
                         self.rect.right = mobile.rect.left
                         mobile.onLeft(self)
@@ -130,22 +166,33 @@ class PhysChar(pygame.sprite.Sprite):
 
     def onTop(self, pc):
         pc.on_ground = 3
+        pc.jumps = pc.jumpAmt
         pc.jump_mult = self.elasticity + pc.elasticity
         pc.velocity = Vector(pc.velocity.x, -pc.velocity.y*self.elasticity)*self.friction
         pass
     def onBottom(self, pc):
+        pc.on_roof = 1
         pc.velocity = Vector(pc.velocity.x, -pc.velocity.y*self.elasticity)*self.friction
         pass
     def onLeft(self, pc):
+        pc.on_right = 1
         pc.velocity = Vector(-pc.velocity.x*self.elasticity, pc.velocity.y)*self.friction
-        if pc.returnSubclass() == "enemy":
+        if pc.returnSubclass() == "enemy" or "slime":
             pc.direction *= -1
         pass
     def onRight(self, pc):
+        pc.on_left = 1
         pc.velocity = Vector(-pc.velocity.x*self.elasticity, pc.velocity.y)*self.friction
-        if pc.returnSubclass() == "enemy":
+        if pc.returnSubclass() == "enemy" or "slime":
             pc.direction *= -1
 
+    def die(self, intensity = 0, path = None):
+        self.gibbed((self.rect.x, self.rect.y), intensity)
+        self.game.state.addBody(self.rect.center, path)
+        self.kill()
+
+    def disableControls(self):
+        pass
 
     def returnSubclass(self):
         return "physchar"

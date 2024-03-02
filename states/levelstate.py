@@ -10,6 +10,9 @@ from objects.button import Button
 from objects.spike import Spike
 from effects.gib import Gib
 from effects.sword import Sword
+from effects.bar import Bar
+from effects.jet import Jet
+from objects.slime import Slime
 
 import pygame
 import random
@@ -55,6 +58,7 @@ class LevelState(GameState):
         self.playerArr = []
         self.enemyArr = []
         self.buttonArr = []
+        self.slimeArr = []
         x = game.offset
         y = game.offset
         self.COOLDOWN = 0
@@ -108,17 +112,19 @@ class LevelState(GameState):
                         if col == "V": # conveyor down
                             convArr.append(Conveyor(self.game, (x, y), "down", 10))
                         if col == "W": # water
-                            liquidArr.append(Liquid(self.game, (x, y), "./sprites/error.png", False, False, 70, 0.98, 0.7))
+                            liquidArr.append(Liquid(self.game, (x, y), "./sprites/error.png", False, False, 70, 0.98, 0.7, True))
                         if col == "L": # ladder
-                            liquidArr.append(Liquid(self.game, (x, y), "./sprites/ladder.png", False, False, 150, 0.94, 0.6))
+                            liquidArr.append(Liquid(self.game, (x, y), "./sprites/ladder.png", False, False, 150, 0.94, 0.6, False))
                         if col == "C": # concrete
-                            liquidArr.append(Liquid(self.game, (x, y), "./sprites/error.png", False, False, 150, 0.94, 0.5999))
+                            liquidArr.append(Liquid(self.game, (x, y), "./sprites/error.png", False, False, 150, 0.94, 0.5999, False))
                         if col == "@": # button
                             self.buttonArr.append((x, y))
-                        if col == "E":
+                        if col == "E": # enemy
                             self.enemyArr.append((x, y))
-                        if col == "X":
+                        if col == "X": #spikes
                             blockArr.append(Spike(self.game, (x,y)))
+                        if col == "C": # slime
+                            self.slimeArr.append((x, y))
                     elif currentLayer == "elevator":
                         if col.isdigit():
                             temp[int(col)] = (x, y)
@@ -178,6 +184,13 @@ class LevelState(GameState):
         self.mobiles.add(temp)
         self.all_sprites.add(temp)
 
+    def spawnSlime(self):
+        choice = random.choice(self.slimeArr)
+        temp = Slime(self.game, choice)
+        self.enemies.add(temp)
+        self.mobiles.add(temp)
+        self.all_sprites.add(temp)
+
     def spawnButton(self):
         choice = random.choice(self.buttonArr) # chooses random button to spawn button
         temp = Button(self.game, choice)
@@ -192,15 +205,27 @@ class LevelState(GameState):
         self.mobiles.add(temp)
         self.all_sprites.add(temp)
 
+        temp2 = Bar(self.game, temp)
+        self.gibs.add(temp2)
+        self.all_sprites.add(temp2)
+
     def sword(self, pos, direction):
         temp = Sword(self.game, pos, direction)
         self.gibs.add(temp)
         self.all_sprites.add(temp)
 
-    def makeGib(self, pos):
+    def gibbed(self, pos):
         temp = Gib(self.game, (pos))
         self.gibs.add(temp)
         self.all_sprites.add(temp) 
+
+    def jet(self, pos, object):
+        temp = Jet(pos, object)
+        self.gibs.add(temp)
+        self.all_sprites.add(temp)
+
+    def addBody(self, pos, path):
+        pass 
 
     def handleEvents(self, events): 
         pressed_keys = pygame.key.get_pressed()
@@ -213,6 +238,9 @@ class LevelState(GameState):
                 self.COOLDOWN = 3
             if pressed_keys[self.game.controls['player']] and self.COOLDOWN == 0:
                 self.spawnPlayer()
+                self.COOLDOWN = 3
+            if pressed_keys[self.game.controls['slime']] and self.COOLDOWN == 0:
+                self.spawnSlime()
                 self.COOLDOWN = 3
             if event.type == self.ADDENEMY:
                 # self.spawnEnemy()

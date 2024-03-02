@@ -10,8 +10,7 @@ class Spike(PhysChar): # if you're on it and press down, you fall through
 
     def onTop(self, pc): 
         if self.rect.y >= pc.rect.y+3 and pc.velocity.y > 0 and pc.returnSubclass() is not "gib":
-            pc.gibbed((pc.rect.x, pc.rect.y), 15)
-            pc.kill()
+            pc.die(10)
         # super().onTop(pc)
 
     def returnSubclass(self):
