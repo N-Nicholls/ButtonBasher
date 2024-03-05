@@ -177,18 +177,18 @@ class PhysChar(pygame.sprite.Sprite):
     def onLeft(self, pc):
         pc.on_right = 1
         pc.velocity = Vector(-pc.velocity.x*self.elasticity, pc.velocity.y)*self.friction
-        if pc.returnSubclass() == "enemy" or "slime":
+        if pc.returnSubclass() == "enemy" or pc.returnSubclass() == "slime":
             pc.direction *= -1
         pass
     def onRight(self, pc):
         pc.on_left = 1
         pc.velocity = Vector(-pc.velocity.x*self.elasticity, pc.velocity.y)*self.friction
-        if pc.returnSubclass() == "enemy" or "slime":
+        if pc.returnSubclass() == "enemy" or pc.returnSubclass() == "slime":
             pc.direction *= -1
 
     def die(self, intensity = 0, path = None):
         self.gibbed((self.rect.x, self.rect.y), intensity)
-        self.game.state.addBody(self.rect.center, path)
+        self.game.state.addBody(self.rect.center, path) # doesn't do anything yet
         self.kill()
 
     def disableControls(self):
