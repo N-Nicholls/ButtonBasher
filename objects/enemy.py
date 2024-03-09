@@ -24,6 +24,8 @@ class Enemy(PhysChar):
         for block in self.game.state.blocks:
             if nextPos.colliderect(block.rect) and block.passable == 0:
                 return True
+            elif self.on_ground == False:
+                return True
         self.direction *= -1
         return False
 

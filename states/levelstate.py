@@ -123,7 +123,7 @@ class LevelState(GameState):
                             self.enemyArr.append((x, y))
                         if col == "X": #spikes
                             blockArr.append(Spike(self.game, (x,y)))
-                        if col == "C": # slime
+                        if col == "D": # slime
                             self.slimeArr.append((x, y))
                     elif currentLayer == "elevator":
                         if col.isdigit():
