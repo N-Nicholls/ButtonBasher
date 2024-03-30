@@ -36,6 +36,7 @@ class PhysChar(pygame.sprite.Sprite):
         self.on_right = 0
         self.on_roof = 0
         self.gravity = Vector(0, 0.6)
+        self.mass = 1 # unitless, this does not correspond to metric or anything
 
         # effects
         self.maxSpeed = 10
