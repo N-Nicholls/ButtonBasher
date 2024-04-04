@@ -2,14 +2,16 @@ import pygame
 import math
 from core.vector import Vector
 from core.spritesheet import SpriteSheet
+from effects.effect import Effect
 import random
 
 class PhysChar(pygame.sprite.Sprite):
-    def __init__(self, game, pos = (0,0), sheetPath = "./sprites/error.png", randHor = False, randVert = False, fric = 0.95, elas = 1, coverable = False):
+    def __init__(self, game, pos = (0,0), sheetPath = "./sprites/error.png", randHor = False, randVert = False, fric = 0.95, elas = 1, coverable = (0,0,0,0)):
         super(PhysChar, self).__init__()
         self.game = game
-        self.sheet = SpriteSheet(sheetPath)
+        
         # rendering
+        self.sheet = SpriteSheet(sheetPath)
         self.width = game.block_size 
         self.height = game.block_size
         self.surf = self.sheet.image_at(0, self.width, self.height)
@@ -23,6 +25,13 @@ class PhysChar(pygame.sprite.Sprite):
             choice2 = random.randint(0, 1)
             if choice2 == 0:
                 self.surf = pygame.transform.flip(self.surf, False, True)
+
+        # slime cover
+        self.coverable = coverable # top, bottom, left, right
+        self.cover_top = None
+        self.cover_bottom = None
+        self.cover_left = None
+        self.cover_right = None
             
         # physics/collision
         self.velocity = Vector(0, 0)
@@ -36,19 +45,12 @@ class PhysChar(pygame.sprite.Sprite):
         self.on_right = 0
         self.on_roof = 0
         self.gravity = Vector(0, 0.6)
-        self.mass = 1 # unitless, this does not correspond to metric or anything
 
         # effects
         self.maxSpeed = 10
         self.breath = 10 * self.game.frame_rate # ten seconds
         self.canBreath = False
-
-        # slime effects
-        self.coverable = coverable
-        self.temp_fric = None
-        self.temp_elas = None
-        self.covered_top = None
-        self.top_coolDown = 0
+        self.effects = []
 
         # player jump functions
         self.jumps = 1
@@ -57,6 +59,19 @@ class PhysChar(pygame.sprite.Sprite):
 
 
     def update(self):
+
+        # effects and block covering updates
+        for effect in self.effects:
+            effect.update()
+        for cover in [self.cover_top, self.cover_bottom, self.cover_left, self.cover_right]:
+            if cover is not None:
+                if cover.duration == 0:
+                    cover = None
+                else:
+                    cover.update()
+
+
+        # breathing updates
         if self.canBreath:
             if self.drowning:
                 if self.breath <= 0:
@@ -70,8 +85,7 @@ class PhysChar(pygame.sprite.Sprite):
                     self.breath += 1
             # print(self.breath)
 
-
-        # effects
+        # non-slime effects
         self.velocity += self.gravity
         if self.on_ground > 0:
             self.on_ground -= 1
@@ -84,9 +98,11 @@ class PhysChar(pygame.sprite.Sprite):
         if self.on_roof > 0:
             self.on_roof -= 1
         
+        # player jump updates
         if self.jumpCooldown > 0:
             self.jumpCooldown -= 1
 
+        # get squished
         if self.on_roof and self.on_ground > 0:
             self.die(10)
         if self.on_left and self.on_right > 0:
@@ -105,14 +121,6 @@ class PhysChar(pygame.sprite.Sprite):
     def move(self, dx, dy):
         self.moveSingleAxis(dx, 0)
         self.moveSingleAxis(0, dy)
-
-    # calls gibbed, exists as check to make sure thing calling isn't a gib itself
-    def gibbed(self, pos, intensity):
-        if self.returnSubclass() == "gib":
-            return
-        else:   
-            for _ in range(intensity):
-                self.game.state.gibbed(pos)
                 
     def setSheet(self, path, frame = 0):
         self.sheet = SpriteSheet(path)
@@ -164,36 +172,48 @@ class PhysChar(pygame.sprite.Sprite):
                         self.rect.top = mobile.rect.bottom
                         mobile.onBottom(self)
 
-
     def onTop(self, pc):
         pc.on_ground = 3
         pc.jumps = pc.jumpAmt
         pc.jump_mult = self.elasticity + pc.elasticity
         pc.velocity = Vector(pc.velocity.x, -pc.velocity.y*self.elasticity)*self.friction
+        if pc.returnSubclass() == "slime" and self.coverable[0] == 1:
+            self.cover_top = Effect(pc.type, 50)
+            self.game.state.coverAdd(self, "up", pc.type)
         pass
     def onBottom(self, pc):
         pc.on_roof = 1
         pc.velocity = Vector(pc.velocity.x, -pc.velocity.y*self.elasticity)*self.friction
+        if pc.returnSubclass() == "slime" and self.coverable[1] == 1:
+            self.cover_bottom = Effect(pc.type, 50)
         pass
     def onLeft(self, pc):
         pc.on_right = 1
         pc.velocity = Vector(-pc.velocity.x*self.elasticity, pc.velocity.y)*self.friction
+        if pc.returnSubclass() == "slime" and self.coverable[2] == 1:
+            self.cover_left = Effect(pc.type, 50)
         if pc.returnSubclass() == "enemy" or pc.returnSubclass() == "slime":
             pc.direction *= -1
         pass
     def onRight(self, pc):
         pc.on_left = 1
         pc.velocity = Vector(-pc.velocity.x*self.elasticity, pc.velocity.y)*self.friction
+        if pc.returnSubclass() == "slime" and self.coverable[3] == 1:
+            self.cover_right = Effect(pc.type, 50)
         if pc.returnSubclass() == "enemy" or pc.returnSubclass() == "slime":
             pc.direction *= -1
 
     def die(self, intensity = 0, path = None):
         self.gibbed((self.rect.x, self.rect.y), intensity)
-        self.game.state.addBody(self.rect.center, path) # doesn't do anything yet
         self.kill()
 
-    def disableControls(self):
-        pass
+    # calls gibbed, exists as check to make sure thing calling isn't a gib itself
+    def gibbed(self, pos, intensity):
+        if self.returnSubclass() == "gib":
+            return
+        else:   
+            for _ in range(intensity):
+                self.game.state.gibbed(pos)
 
     def returnSubclass(self):
         return "physchar"
@@ -214,20 +234,3 @@ class PhysChar(pygame.sprite.Sprite):
             self.rect.bottom = SCREEN_HEIGHT
             self.speedY -= 1
             self.ON_GROUND = self.ON_GROUND_FRAMES # reset on ground timer'''
-
-
-
-    """def update(self):  
-        # Tag controlling if on ground. Every frame lowers by 1, if 0, then on ground
-        # total frames allowed depends on ON_GROUND_FRAMES
-        if self.ON_GROUND > 0:
-            self.ON_GROUND -= 1
-        self.ON_CONVEYORX = 0
-        self.ON_CONVEYORY = 0
-        if self.effectFrames > 0:
-            self.effectFrames -= 1
-        self.buoyantConst = 0
-        self.viscosityConst = 1
-        self.IN_LIQUID = 0
-        self.JUMP_MULT = 1
-"""

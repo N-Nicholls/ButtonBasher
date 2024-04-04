@@ -15,13 +15,19 @@ of survival.
 - Objects (dynamic)
     - doors
     - buttons, textures, direction, framerate
-    - elevator nodes
     - enemies (toad)
     - enemies (mimic)
     - enemies (shooting)
     - enemies (roblox zombie)
     - enemies (slimes)
         - effects, block layers
+    - Textures
+        - liquids
+        - better animation
+        - cover
+        -  fire
+        - ui?
+        - timer
 - UI
     - timer
     - status effect counter
@@ -40,15 +46,4 @@ Todo: (extra)
 - update documentation:
     - adopt standardized documentation (doxygen?)
 
-
-Pros/Cons to having gibs as composition function of levelState:
-- Pros:
-    - Allows it to be a physChar, meaning we can reuse physics functions
-    - Separate from object its being called by, meaning we can reuse the effect for anything. 
-        - set precedent for effects later on. 
-- Cons:
-    - Will need to rewrite gibbed function (not gibbed class) for each state, but this gives us more control
-    - Not tied to object, exists on its own
-
-Note:
-    - Elevators are fucked
+Notes:

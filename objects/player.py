@@ -6,7 +6,7 @@ import pygame
 class Player(PhysChar):
 
     def __init__(self, game, controls, pos):
-        super().__init__(game, pos, "./sprites/player1-sheet.png", False, False, 0.95, 1, )
+        super().__init__(game, pos, "./sprites/player1-sheet.png", False, False, 0.95, 1)
         self.controls = controls
         self.maxSpeed = 7 # max speed for adding movement
         self.jump_mult = 1
@@ -66,7 +66,7 @@ class Player(PhysChar):
         formatted_in_liquid = str(self.in_liquid).ljust(5)  # 'True ' or 'False'
         
         # Use formatted string literals with fixed spacing
-        print(f"xpos: {self.rect.x:<4} ypos: {self.rect.y:<4} velocity: {formatted_velocity:<15} on ground: {formatted_on_ground} in liquid: {formatted_in_liquid}" + " Jump Mult:" + str(self.jump_mult) + " Frame:" + str((self.frame%6)+1))
+        # print(f"xpos: {self.rect.x:<4} ypos: {self.rect.y:<4} velocity: {formatted_velocity:<15} on ground: {formatted_on_ground} in liquid: {formatted_in_liquid}" + " Jump Mult:" + str(self.jump_mult) + " Frame:" + str((self.frame%6)+1))
         # print(f"Ground: {self.on_ground} Roof: {self.on_roof} Left:  {self.on_left} Right: {self.on_right}")
         # print(f"Charges: {self.jumps} Cooldown: {self.jumpCooldown}")
         

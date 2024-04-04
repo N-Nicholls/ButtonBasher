@@ -15,6 +15,7 @@ class Enemy(PhysChar):
         self.canBreath = True
         self.frameDelay = 5
         self.frame = 1
+        self.level = 0
     
     def canMove(self):
         nextPos = self.rect.copy()
@@ -37,7 +38,7 @@ class Enemy(PhysChar):
                 self.frame += 1
                 self.frameDelay = 0
             currFrame = (self.frame%6)+1
-            self.surf = self.sheet.image_at(currFrame-1, self.width, self.height)
+            self.surf = self.sheet.image_at(currFrame-1, self.width, self.height, 1, None, self.level)
             if self.frame >= 30:
                 self.frame = 1
             self.frameDelay +=1

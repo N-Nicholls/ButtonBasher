@@ -13,6 +13,7 @@ from effects.sword import Sword
 from effects.bar import Bar
 from effects.jet import Jet
 from objects.slime import Slime
+from effects.cover import Cover
 
 import pygame
 import random
@@ -26,6 +27,7 @@ class LevelState(GameState):
         self.game = game
         self.all_sprites = pygame.sprite.Group()
         self.blocks = pygame.sprite.Group()
+        self.cover = pygame.sprite.Group() # for cover rendering over blocks
         self.player = pygame.sprite.Group()
         self.fallthrough = pygame.sprite.Group()
         self.liquids = pygame.sprite.Group()
@@ -35,7 +37,6 @@ class LevelState(GameState):
         self.buttons = pygame.sprite.Group()
         self.gibs = pygame.sprite.Group()
         self.conveyor = pygame.sprite.Group() # just to update the sprite, probably not efficient
-        
         self.controls = controls
         self.parseLevel(level_file, game)
 
@@ -88,19 +89,19 @@ class LevelState(GameState):
                 for col in line:
                     if currentLayer == "main":
                         if col == "B":  # block
-                            blockArr.append(PhysChar(self.game, (x, y), "./sprites/brick.png", True, False, 0.85, 0, ))
+                            blockArr.append(PhysChar(self.game, (x, y), "./sprites/brick.png", True, False, 0.85, 0, (1,1,1,1)))
                         if col == "P": # player
                             self.playerArr.append((x, y))
                         if col == "R": # Redbull
-                            blockArr.append(PhysChar(self.game, (x, y), "./sprites/redbull.png", True, False, 1.05, 0))
+                            blockArr.append(PhysChar(self.game, (x, y), "./sprites/redbull.png", True, False, 1.05, 0, (1,1,1,1)))
                         if col == "S": # Sludge
-                            blockArr.append(PhysChar(self.game, (x, y), "./sprites/sludge.png", True, False, 0.75, 0.2, ))
+                            blockArr.append(PhysChar(self.game, (x, y), "./sprites/sludge.png", True, False, 0.75, 0.2, (1,1,1,1)))
                         if col == "I": # Ice
-                            blockArr.append(PhysChar(self.game, (x, y), "./sprites/ice.png", True, False, 1, 0, ))
+                            blockArr.append(PhysChar(self.game, (x, y), "./sprites/ice.png", True, False, 1, 0, (1,1,1,1)))
                         if col == "G": # Granite
-                            blockArr.append(PhysChar(self.game, (x, y), "./sprites/granite.png", True, True, 0.85, 0.3))
+                            blockArr.append(PhysChar(self.game, (x, y), "./sprites/granite.png", True, True, 0.85, 0.3, (1,1,1,1)))
                         if col == "J": # JumpPad
-                            blockArr.append(PhysChar(self.game, (x, y), "./sprites/jump.png", False, True, 0.85, 1, ))
+                            blockArr.append(PhysChar(self.game, (x, y), "./sprites/jump.png", False, True, 0.85, 1, (1,1,1,1)))
                         if col == "F": # Fallthrough
                             fallthroughArr.append(FallThrough(self.game, (x, y)))
                         if col == "<": # conveyor left
@@ -112,11 +113,11 @@ class LevelState(GameState):
                         if col == "V": # conveyor down
                             convArr.append(Conveyor(self.game, (x, y), "down", 10))
                         if col == "W": # water
-                            liquidArr.append(Liquid(self.game, (x, y), "./sprites/error.png", False, False, 70, 0.98, 0.7, True))
+                            liquidArr.append(Liquid(self.game, (x, y), "./sprites/error.png", False, False, 70, 0.98, 0.7))
                         if col == "L": # ladder
-                            liquidArr.append(Liquid(self.game, (x, y), "./sprites/ladder.png", False, False, 150, 0.94, 0.6, False))
+                            liquidArr.append(Liquid(self.game, (x, y), "./sprites/ladder.png", False, False, 150, 0.94, 0.6))
                         if col == "C": # concrete
-                            liquidArr.append(Liquid(self.game, (x, y), "./sprites/error.png", False, False, 150, 0.94, 0.5999, False))
+                            liquidArr.append(Liquid(self.game, (x, y), "./sprites/error.png", False, False, 150, 0.94, 0.5999))
                         if col == "@": # button
                             self.buttonArr.append((x, y))
                         if col == "E": # enemy
@@ -186,7 +187,8 @@ class LevelState(GameState):
 
     def spawnSlime(self):
         choice = random.choice(self.slimeArr)
-        temp = Slime(self.game, choice)
+        type = random.choice(["fire", "sludge", "jump", "ice", "redbull"])
+        temp = Slime(self.game, choice, type)
         self.enemies.add(temp)
         self.mobiles.add(temp)
         self.all_sprites.add(temp)
@@ -224,8 +226,10 @@ class LevelState(GameState):
         self.gibs.add(temp)
         self.all_sprites.add(temp)
 
-    def addBody(self, pos, path):
-        pass 
+    def coverAdd(self, object, direction = "up", type = "ice"):
+        temp = Cover(object, direction, type)
+        self.cover.add(temp)
+        self.all_sprites.add(temp)
 
     def handleEvents(self, events): 
         pressed_keys = pygame.key.get_pressed()
@@ -248,13 +252,14 @@ class LevelState(GameState):
 
     def update(self):
         pressed_keys = pygame.key.get_pressed()
-        self.gibs.update() # gib stuff
         self.player.update(pressed_keys) # player physics and movement
         self.elevator.update() # timer for elevators
         self.fallthrough.update() # timer for fallthrough blocks
         self.enemies.update() # enemy movement and collision
         self.buttons.update()
         self.conveyor.update()
+        self.gibs.update() # gib stuff # note: previously called first
+        self.cover.update()
         if self.COOLDOWN > 0:
             self.COOLDOWN -= 1
 
