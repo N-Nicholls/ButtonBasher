@@ -28,7 +28,7 @@ class Game():
 
         # important initialize stuff
         pygame.init()
-        self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
+        self.screen = pygame.display.set_mode((self.screen_width, self.screen_height), pygame.SCALED)
         self.clock = pygame.time.Clock()
         self.running = True
 

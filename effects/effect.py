@@ -4,5 +4,6 @@ class Effect():
         self.duration = duration
 
     def update(self):
+        # print(self.duration)
         if self.duration > 0:
             self.duration -= 1

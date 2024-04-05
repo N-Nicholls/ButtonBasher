@@ -57,20 +57,18 @@ class PhysChar(pygame.sprite.Sprite):
         self.jumpAmt = 1
         self.jumpCooldown = 10
 
-
-    def update(self):
-
+    def static_update(self):
         # effects and block covering updates
         for effect in self.effects:
             effect.update()
         for cover in [self.cover_top, self.cover_bottom, self.cover_left, self.cover_right]:
             if cover is not None:
-                if cover.duration == 0:
+                if cover.duration <= 0:
                     cover = None
                 else:
                     cover.update()
 
-
+    def update(self):
         # breathing updates
         if self.canBreath:
             if self.drowning:
@@ -177,21 +175,35 @@ class PhysChar(pygame.sprite.Sprite):
         pc.jumps = pc.jumpAmt
         pc.jump_mult = self.elasticity + pc.elasticity
         pc.velocity = Vector(pc.velocity.x, -pc.velocity.y*self.elasticity)*self.friction
-        if pc.returnSubclass() == "slime" and self.coverable[0] == 1:
-            self.cover_top = Effect(pc.type, 50)
-            self.game.state.coverAdd(self, "up", pc.type)
+        if pc.returnSubclass() == "slime" and self.coverable[0] == 1:               
+            if self.cover_top is not None and self.cover_top.type == pc.type:
+                self.cover_top.duration = 50
+                self.game.state.coverAdd(self, "top", pc.type)
+            else:
+                self.cover_top = Effect(pc.type, 50) 
+                self.game.state.coverAdd(self, "top", pc.type)
         pass
     def onBottom(self, pc):
         pc.on_roof = 1
         pc.velocity = Vector(pc.velocity.x, -pc.velocity.y*self.elasticity)*self.friction
         if pc.returnSubclass() == "slime" and self.coverable[1] == 1:
-            self.cover_bottom = Effect(pc.type, 50)
+            if self.cover_bottom is not None and self.cover_bottom.type == pc.type:
+                self.cover_bottom.duration = 50
+                self.game.state.coverAdd(self, "bottom", pc.type) 
+            else:
+                self.cover_bottom = Effect(pc.type, 50)
+                self.game.state.coverAdd(self, "bottom", pc.type) 
         pass
     def onLeft(self, pc):
         pc.on_right = 1
         pc.velocity = Vector(-pc.velocity.x*self.elasticity, pc.velocity.y)*self.friction
         if pc.returnSubclass() == "slime" and self.coverable[2] == 1:
-            self.cover_left = Effect(pc.type, 50)
+            if self.cover_left is not None and self.cover_left.type == pc.type:
+                self.cover_left.duration = 50
+                self.game.state.coverAdd(self, "left", pc.type)
+            else:
+                self.cover_left = Effect(pc.type, 50)
+                self.game.state.coverAdd(self, "left", pc.type) 
         if pc.returnSubclass() == "enemy" or pc.returnSubclass() == "slime":
             pc.direction *= -1
         pass
@@ -199,7 +211,12 @@ class PhysChar(pygame.sprite.Sprite):
         pc.on_left = 1
         pc.velocity = Vector(-pc.velocity.x*self.elasticity, pc.velocity.y)*self.friction
         if pc.returnSubclass() == "slime" and self.coverable[3] == 1:
-            self.cover_right = Effect(pc.type, 50)
+            if self.cover_right is not None and self.cover_right.type == pc.type:
+                self.cover_right.duration = 50
+                self.game.state.coverAdd(self, "right", pc.type)
+            else:
+                self.cover_right = Effect(pc.type, 50) 
+                self.game.state.coverAdd(self, "right", pc.type)
         if pc.returnSubclass() == "enemy" or pc.returnSubclass() == "slime":
             pc.direction *= -1
 

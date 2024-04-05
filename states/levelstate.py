@@ -179,37 +179,48 @@ class LevelState(GameState):
         
 
     def spawnEnemy(self):
-        choice = random.choice(self.enemyArr)
-        temp = Enemy(self.game, choice)
-        self.enemies.add(temp)
-        self.mobiles.add(temp)
-        self.all_sprites.add(temp)
+        if self.enemyArr == []:
+            pass
+        else:
+            choice = random.choice(self.enemyArr)
+            temp = Enemy(self.game, choice)
+            self.enemies.add(temp)
+            self.mobiles.add(temp)
+            self.all_sprites.add(temp)
 
     def spawnSlime(self):
-        choice = random.choice(self.slimeArr)
-        type = random.choice(["fire", "sludge", "jump", "ice", "redbull"])
-        temp = Slime(self.game, choice, type)
-        self.enemies.add(temp)
-        self.mobiles.add(temp)
-        self.all_sprites.add(temp)
+        if self.slimeArr == []:
+            pass
+        else:
+            choice = random.choice(self.slimeArr)
+            type = random.choice(["fire", "sludge", "jump", "ice", "redbull"])
+            temp = Slime(self.game, choice, type)
+            self.enemies.add(temp)
+            self.mobiles.add(temp)
+            self.all_sprites.add(temp)
 
     def spawnButton(self):
-        choice = random.choice(self.buttonArr) # chooses random button to spawn button
-        temp = Button(self.game, choice)
-        self.mobiles.add(temp)
-        self.buttons.add(temp)
-        self.all_sprites.add(temp)
-    
+        if self.buttonArr == []:
+            pass
+        else:
+            choice = random.choice(self.buttonArr) # chooses random button to spawn button
+            temp = Button(self.game, choice)
+            self.mobiles.add(temp)
+            self.buttons.add(temp)
+            self.all_sprites.add(temp)
+        
     def spawnPlayer(self):
-        choice = random.choice(self.playerArr)
-        temp = Player(self.game, self.controls, choice)
-        self.player.add(temp)
-        self.mobiles.add(temp)
-        self.all_sprites.add(temp)
-
-        temp2 = Bar(self.game, temp)
-        self.gibs.add(temp2)
-        self.all_sprites.add(temp2)
+        if self.playerArr == []:
+            pass
+        else:
+            choice = random.choice(self.playerArr)
+            temp = Player(self.game, self.controls, choice)
+            self.player.add(temp)
+            self.mobiles.add(temp)
+            self.all_sprites.add(temp)
+            temp2 = Bar(self.game, temp)
+            self.gibs.add(temp2)
+            self.all_sprites.add(temp2)
 
     def sword(self, pos, direction):
         temp = Sword(self.game, pos, direction)
@@ -226,7 +237,7 @@ class LevelState(GameState):
         self.gibs.add(temp)
         self.all_sprites.add(temp)
 
-    def coverAdd(self, object, direction = "up", type = "ice"):
+    def coverAdd(self, object, direction = "top", type = "ice"):
         temp = Cover(object, direction, type)
         self.cover.add(temp)
         self.all_sprites.add(temp)
@@ -251,6 +262,8 @@ class LevelState(GameState):
                 pass
 
     def update(self):
+
+        # dynamic updates
         pressed_keys = pygame.key.get_pressed()
         self.player.update(pressed_keys) # player physics and movement
         self.elevator.update() # timer for elevators
@@ -260,6 +273,10 @@ class LevelState(GameState):
         self.conveyor.update()
         self.gibs.update() # gib stuff # note: previously called first
         self.cover.update()
+
+        # static updates
+        for blocks in self.blocks:
+            blocks.static_update()
         if self.COOLDOWN > 0:
             self.COOLDOWN -= 1
 
@@ -267,6 +284,7 @@ class LevelState(GameState):
         screen.fill((0, 0, 0))
         for entity in self.all_sprites:
             screen.blit(entity.surf, entity.rect)
+            
 
 
 
