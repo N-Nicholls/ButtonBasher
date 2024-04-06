@@ -58,13 +58,13 @@ class PhysChar(pygame.sprite.Sprite):
         self.jumpCooldown = 10
 
     def static_update(self):
-        # effects and block covering updates
         for effect in self.effects:
             effect.update()
         for cover in [self.cover_top, self.cover_bottom, self.cover_left, self.cover_right]:
             if cover is not None:
                 if cover.duration <= 0:
                     cover = None
+                    # del cover
                 else:
                     cover.update()
 
@@ -75,12 +75,12 @@ class PhysChar(pygame.sprite.Sprite):
                 if self.breath <= 0:
                     self.die(10)
                 else:
-                    self.breath -= 1
+                    self.breath -= 2
             else:
                 if self.breath >= 10 * self.game.frame_rate:
                     self.breath = 10 * self.game.frame_rate
                 else:
-                    self.breath += 1
+                    self.breath += 3
             # print(self.breath)
 
         # non-slime effects
@@ -173,50 +173,67 @@ class PhysChar(pygame.sprite.Sprite):
     def onTop(self, pc):
         pc.on_ground = 3
         pc.jumps = pc.jumpAmt
-        pc.jump_mult = self.elasticity + pc.elasticity
-        pc.velocity = Vector(pc.velocity.x, -pc.velocity.y*self.elasticity)*self.friction
+        if self.cover_top is None or self.cover_top.duration <= 0:
+            pc.jump_mult = self.elasticity + pc.elasticity
+            pc.velocity = Vector(pc.velocity.x, -pc.velocity.y*self.elasticity)*self.friction
+        else:
+            pc.jump_mult = self.cover_top.elasticity + pc.elasticity
+            pc.velocity = Vector(pc.velocity.x, -pc.velocity.y*self.cover_top.elasticity)*self.cover_top.friction
+
         if pc.returnSubclass() == "slime" and self.coverable[0] == 1:               
             if self.cover_top is not None and self.cover_top.type == pc.type:
-                self.cover_top.duration = 50
-                self.game.state.coverAdd(self, "top", pc.type)
+                self.cover_top.duration = pc.strength
+                self.game.state.coverAdd(self, pc.strength, "top", pc.type)
             else:
-                self.cover_top = Effect(pc.type, 50) 
-                self.game.state.coverAdd(self, "top", pc.type)
+                self.cover_top = Effect(pc.type, pc.strength) 
+                self.game.state.coverAdd(self, pc.strength, "top", pc.type)
         pass
     def onBottom(self, pc):
         pc.on_roof = 1
-        pc.velocity = Vector(pc.velocity.x, -pc.velocity.y*self.elasticity)*self.friction
+        if self.cover_bottom is None or self.cover_bottom.duration <= 0:
+            pc.velocity = Vector(pc.velocity.x, -pc.velocity.y*self.elasticity)*self.friction
+        else:
+            pc.velocity = Vector(pc.velocity.x, -pc.velocity.y*self.cover_bottom.elasticity)*self.cover_bottom.friction
+
         if pc.returnSubclass() == "slime" and self.coverable[1] == 1:
             if self.cover_bottom is not None and self.cover_bottom.type == pc.type:
-                self.cover_bottom.duration = 50
-                self.game.state.coverAdd(self, "bottom", pc.type) 
+                self.cover_bottom.duration = pc.strength
+                self.game.state.coverAdd(self, pc.strength, "bottom", pc.type) 
             else:
-                self.cover_bottom = Effect(pc.type, 50)
-                self.game.state.coverAdd(self, "bottom", pc.type) 
+                self.cover_bottom = Effect(pc.type, pc.strength)
+                self.game.state.coverAdd(self, pc.strength, "bottom", pc.type) 
         pass
     def onLeft(self, pc):
         pc.on_right = 1
-        pc.velocity = Vector(-pc.velocity.x*self.elasticity, pc.velocity.y)*self.friction
+        if self.cover_left is None or self.cover_left.duration <= 0:
+            pc.velocity = Vector(-pc.velocity.x*self.elasticity, pc.velocity.y)*self.friction
+        else:
+            pc.velocity = Vector(-pc.velocity.x*self.cover_left.elasticity, pc.velocity.y)*self.cover_left.friction
+
         if pc.returnSubclass() == "slime" and self.coverable[2] == 1:
             if self.cover_left is not None and self.cover_left.type == pc.type:
-                self.cover_left.duration = 50
-                self.game.state.coverAdd(self, "left", pc.type)
+                self.cover_left.duration = pc.strength
+                self.game.state.coverAdd(self, pc.strength, "left", pc.type)
             else:
-                self.cover_left = Effect(pc.type, 50)
-                self.game.state.coverAdd(self, "left", pc.type) 
+                self.cover_left = Effect(pc.type, pc.strength)
+                self.game.state.coverAdd(self, pc.strength, "left", pc.type) 
         if pc.returnSubclass() == "enemy" or pc.returnSubclass() == "slime":
             pc.direction *= -1
         pass
     def onRight(self, pc):
         pc.on_left = 1
-        pc.velocity = Vector(-pc.velocity.x*self.elasticity, pc.velocity.y)*self.friction
+        if self.cover_right is None or self.cover_right.duration <= 0:
+            pc.velocity = Vector(-pc.velocity.x*self.elasticity, pc.velocity.y)*self.friction
+        else:
+            pc.velocity = Vector(-pc.velocity.x*self.cover_right.elasticity, pc.velocity.y)*self.cover_right.friction
+
         if pc.returnSubclass() == "slime" and self.coverable[3] == 1:
             if self.cover_right is not None and self.cover_right.type == pc.type:
-                self.cover_right.duration = 50
-                self.game.state.coverAdd(self, "right", pc.type)
+                self.cover_right.duration = pc.strength
+                self.game.state.coverAdd(self, pc.strength, "right", pc.type)
             else:
-                self.cover_right = Effect(pc.type, 50) 
-                self.game.state.coverAdd(self, "right", pc.type)
+                self.cover_right = Effect(pc.type, pc.strength) 
+                self.game.state.coverAdd(self, pc.strength, "right", pc.type)
         if pc.returnSubclass() == "enemy" or pc.returnSubclass() == "slime":
             pc.direction *= -1
 

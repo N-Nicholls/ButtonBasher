@@ -3,7 +3,7 @@ from core.vector import Vector
 
 class Button(PhysChar):
     def __init__(self, game, pos, direction = "up"):
-        super().__init__(game, pos, "./sprites/button.png", False, False, 0.92, 0)
+        super().__init__(game, pos, "./sprites/button.png", False, False, 0.92, 0, coverable = (0,0,0,0))
         self.pressed = False
         self.direction = direction
 

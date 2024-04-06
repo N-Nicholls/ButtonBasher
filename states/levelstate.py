@@ -48,7 +48,7 @@ class LevelState(GameState):
         currentLayer = None
         prevLayer = None
         # arrays for accessing
-        blockArr = []
+        blockArr = [] # changed
         fallthroughArr = []
         liquidArr = []
         elevArr = []
@@ -115,7 +115,7 @@ class LevelState(GameState):
                         if col == "W": # water
                             liquidArr.append(Liquid(self.game, (x, y), "./sprites/error.png", False, False, 70, 0.98, 0.7))
                         if col == "L": # ladder
-                            liquidArr.append(Liquid(self.game, (x, y), "./sprites/ladder.png", False, False, 150, 0.94, 0.6))
+                            liquidArr.append(Liquid(self.game, (x, y), "./sprites/ladder.png", False, False, 150, 0.94, 0.6, False))
                         if col == "C": # concrete
                             liquidArr.append(Liquid(self.game, (x, y), "./sprites/error.png", False, False, 150, 0.94, 0.5999))
                         if col == "@": # button
@@ -194,7 +194,8 @@ class LevelState(GameState):
         else:
             choice = random.choice(self.slimeArr)
             type = random.choice(["fire", "sludge", "jump", "ice", "redbull"])
-            temp = Slime(self.game, choice, type)
+            strength = random.randint(70, 100)
+            temp = Slime(self.game, choice, type, strength)
             self.enemies.add(temp)
             self.mobiles.add(temp)
             self.all_sprites.add(temp)
@@ -237,10 +238,11 @@ class LevelState(GameState):
         self.gibs.add(temp)
         self.all_sprites.add(temp)
 
-    def coverAdd(self, object, direction = "top", type = "ice"):
-        temp = Cover(object, direction, type)
+    def coverAdd(self, object, duration = 50, direction = "top", type = "ice"):
+        pass
+        temp = Cover(object, direction, type, duration)
         self.cover.add(temp)
-        self.all_sprites.add(temp)
+        return self.all_sprites.add(temp)
 
     def handleEvents(self, events): 
         pressed_keys = pygame.key.get_pressed()
@@ -273,10 +275,7 @@ class LevelState(GameState):
         self.conveyor.update()
         self.gibs.update() # gib stuff # note: previously called first
         self.cover.update()
-
-        # static updates
-        for blocks in self.blocks:
-            blocks.static_update()
+        
         if self.COOLDOWN > 0:
             self.COOLDOWN -= 1
 

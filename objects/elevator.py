@@ -4,8 +4,8 @@ from core.vector import Vector
 # IMPORTANT NOTE: THE CODE DOESN'T CHECK FOR ELEVATOR IN ELEVATOR SECTION OF LEVEL. IF U USE A ELEVATOR LAYER, ADD AN ELEVATOR
 # importanter note: pretty sure this ^^^^ isn't true.
 class Elevator(PhysChar):
-    def __init__(self, game, position, speed = 1):
-        super().__init__(game, position, "./sprites/error.png", False, False, 0.80, 0)
+    def __init__(self, game, position, speed = 1, coverable = (1,1,1,1)):
+        super().__init__(game, position, "./sprites/error.png", False, False, 0.80, 0, coverable)
         self.speedMult = speed
         self.velocity = Vector(0, 0)
         self.path = []

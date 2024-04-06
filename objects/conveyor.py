@@ -10,7 +10,7 @@ class Conveyor(PhysChar): #1-left, 2-right, 3-up, 4-down
         self.game = game
         self.frame = 1
         self.frameDelay = 5
-        super().__init__(game, pos, "./sprites/conv-sheet.png", False, False, 0.92, 0)
+        super().__init__(game, pos, "./sprites/conv-sheet.png", False, False, 0.92, 0, coverable = (0,0,0,0))
 
 
     def update(self):

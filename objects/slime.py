@@ -2,11 +2,12 @@ from objects.enemy import Enemy
 from effects.effect import Effect
 
 class Slime(Enemy):
-    def __init__(self, game, pos, type = "sludge"):
+    def __init__(self, game, pos, type = "sludge", strength = 50):
         super().__init__(game, pos)
         self.speed /= 2
         self.canBreath = False
         self.type = type
+        self.strength = strength
         match type:
             case "sludge":
                 self.level = 0
@@ -26,7 +27,7 @@ class Slime(Enemy):
         self.setSheet("./sprites/slime.png")
     
     def update(self):
-        self.effects[0].duration = 50
+        self.effects[0].duration = self.strength
         # print(f"{self.effects[0].type} {self.effects[0].duration}")
         super().update()
 
