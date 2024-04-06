@@ -57,7 +57,7 @@ class PhysChar(pygame.sprite.Sprite):
         self.jumpAmt = 1
         self.jumpCooldown = 10
 
-    def static_update(self):
+    '''def static_update(self):
         for effect in self.effects:
             effect.update()
         for cover in [self.cover_top, self.cover_bottom, self.cover_left, self.cover_right]:
@@ -66,9 +66,23 @@ class PhysChar(pygame.sprite.Sprite):
                     cover = None
                     # del cover
                 else:
-                    cover.update()
+                    cover.update()'''
 
-    def update(self):
+    def update(self, static = 0):
+        if static != 0:
+            for cover in [self.cover_top,self.cover_bottom, self.cover_left, self.cover_right]:
+                if cover is not None:
+                    if cover.duration <= 0:
+                        cover = None
+                        # del cover
+                    else:
+                        cover.update()
+            return
+
+        # effects incrementer
+        for effect in self.effects:
+            effect.update()
+
         # breathing updates
         if self.canBreath:
             if self.drowning:

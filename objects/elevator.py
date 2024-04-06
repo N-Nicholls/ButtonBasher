@@ -17,7 +17,10 @@ class Elevator(PhysChar):
         self.isNode = True
 
 
-    def update(self):
+    def update(self, static = 0):
+        if static != 0:
+            super().update(static)
+            return
         # print(f"cooldown: {self.coolDown} position: {self.position[0]}, {self.position[1]} target: {self.index - 1} target position: {self.next[0]}, {self.next[1]}")
         if self.isNode == True:
             self.passable = 1

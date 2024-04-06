@@ -13,7 +13,10 @@ class Conveyor(PhysChar): #1-left, 2-right, 3-up, 4-down
         super().__init__(game, pos, "./sprites/conv-sheet.png", False, False, 0.92, 0, coverable = (0,0,0,0))
 
 
-    def update(self):
+    def update(self, static = 0):
+        if static != 0:
+            super().update(static)
+            return
         if self.frameDelay == 5:
             self.frame += 1
             self.frameDelay = 0

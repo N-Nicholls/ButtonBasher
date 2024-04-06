@@ -27,7 +27,6 @@ class LevelState(GameState):
         self.game = game
         self.all_sprites = pygame.sprite.Group()
         self.blocks = pygame.sprite.Group()
-        self.cover = pygame.sprite.Group() # for cover rendering over blocks
         self.player = pygame.sprite.Group()
         self.fallthrough = pygame.sprite.Group()
         self.liquids = pygame.sprite.Group()
@@ -37,6 +36,9 @@ class LevelState(GameState):
         self.buttons = pygame.sprite.Group()
         self.gibs = pygame.sprite.Group()
         self.conveyor = pygame.sprite.Group() # just to update the sprite, probably not efficient
+
+        self.cover = pygame.sprite.Group() # for cover rendering over blocks # TODO
+
         self.controls = controls
         self.parseLevel(level_file, game)
 
@@ -274,7 +276,10 @@ class LevelState(GameState):
         self.buttons.update()
         self.conveyor.update()
         self.gibs.update() # gib stuff # note: previously called first
+
+
         self.cover.update()
+        self.blocks.update(1) # for static updates
         
         if self.COOLDOWN > 0:
             self.COOLDOWN -= 1
