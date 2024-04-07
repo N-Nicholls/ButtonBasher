@@ -7,7 +7,7 @@ class Effect():
         match type:
             case "sludge":
                 self.friction = 0.75
-                self.elasticity = 0
+                self.elasticity = 0.2
             case "fire":
                 self.friction = 0.85
                 self.elasticity = 0

@@ -28,7 +28,9 @@ class Game():
 
         # important initialize stuff
         pygame.init()
-        self.screen = pygame.display.set_mode((self.screen_width, self.screen_height), pygame.SCALED)
+        self.screen = pygame.display.set_mode((self.screen_width, self.screen_height), pygame.SCALED | pygame.DOUBLEBUF | pygame.HWSURFACE)
+        self.internal_resolution = (3840, 2160)
+        self.game_surface = pygame.Surface(self.internal_resolution)
         self.clock = pygame.time.Clock()
         self.running = True
 

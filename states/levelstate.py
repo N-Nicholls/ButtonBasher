@@ -14,6 +14,7 @@ from effects.bar import Bar
 from effects.jet import Jet
 from objects.slime import Slime
 from effects.cover import Cover
+from effects.charge import Charge
 
 import pygame
 import random
@@ -36,8 +37,6 @@ class LevelState(GameState):
         self.buttons = pygame.sprite.Group()
         self.gibs = pygame.sprite.Group()
         self.conveyor = pygame.sprite.Group() # just to update the sprite, probably not efficient
-
-        self.cover = pygame.sprite.Group() # for cover rendering over blocks # TODO
 
         self.controls = controls
         self.parseLevel(level_file, game)
@@ -225,6 +224,12 @@ class LevelState(GameState):
             self.gibs.add(temp2)
             self.all_sprites.add(temp2)
 
+    def charge(self, thing):
+        temp = Charge(self.game, thing)
+        self.gibs.add(temp)
+        self.all_sprites.add(temp)
+        return temp
+
     def sword(self, pos, direction):
         temp = Sword(self.game, pos, direction)
         self.gibs.add(temp)
@@ -243,7 +248,7 @@ class LevelState(GameState):
     def coverAdd(self, object, duration = 50, direction = "top", type = "ice"):
         pass
         temp = Cover(object, direction, type, duration)
-        self.cover.add(temp)
+        self.gibs.add(temp)
         return self.all_sprites.add(temp)
 
     def handleEvents(self, events): 
@@ -269,17 +274,15 @@ class LevelState(GameState):
 
         # dynamic updates
         pressed_keys = pygame.key.get_pressed()
-        self.player.update(pressed_keys) # player physics and movement
         self.elevator.update() # timer for elevators
         self.fallthrough.update() # timer for fallthrough blocks
         self.enemies.update() # enemy movement and collision
         self.buttons.update()
         self.conveyor.update()
-        self.gibs.update() # gib stuff # note: previously called first
-
-
-        self.cover.update()
+        self.gibs.update() # gibs is a misnomer, holds all effects
         self.blocks.update(1) # for static updates
+        # note: the order of player after static updates is important so the effects applied to the elasticity is applied to the player jump mult
+        self.player.update(pressed_keys) # player physics and movement
         
         if self.COOLDOWN > 0:
             self.COOLDOWN -= 1

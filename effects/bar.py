@@ -21,7 +21,7 @@ class Bar(pygame.sprite.Sprite):
             if self.object not in self.game.state.player:
                 self.kill()
             self.frame = (10*self.game.frame_rate - self.object.breath) * 2.4 // self.game.frame_rate % 25
-            print(self.frame)
+            # print(self.frame)
             self.surf = self.sheet.image_at(self.frame, 100, 25, .5)
             self.rect.x = self.object.rect.x - 12.5
             self.rect.y = self.object.rect.y - 40

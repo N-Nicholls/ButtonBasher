@@ -14,11 +14,19 @@ class Player(PhysChar):
         self.direction = 1
         self.frame = 1
         self.frameDelay = 5
-        self.jumpAmt = 2
+        self.jumpAmt = 3
+        self.charges = []
 
     def update(self, pressed_keys):
         # movement
         self.printStuff() # debug
+
+        while len(self.charges) < self.jumps:
+            self.charges.append(self.game.state.charge(self))
+        while len(self.charges) > self.jumps:
+            temp = self.charges.pop()
+            temp.frame = 1
+            temp.killed = True
 
         # frame stuff
         if self.frameDelay == 5:
@@ -66,7 +74,7 @@ class Player(PhysChar):
         formatted_in_liquid = str(self.in_liquid).ljust(5)  # 'True ' or 'False'
         
         # Use formatted string literals with fixed spacing
-        # print(f"xpos: {self.rect.x:<4} ypos: {self.rect.y:<4} velocity: {formatted_velocity:<15} on ground: {formatted_on_ground} in liquid: {formatted_in_liquid}" + " Jump Mult:" + str(self.jump_mult) + " Frame:" + str((self.frame%6)+1))
+        print(f"xpos: {self.rect.x:<4} ypos: {self.rect.y:<4} velocity: {formatted_velocity:<15} on ground: {formatted_on_ground} in liquid: {formatted_in_liquid}" + " Jump Mult:" + str(self.jump_mult) + " Frame:" + str((self.frame%6)+1))
         # print(f"Ground: {self.on_ground} Roof: {self.on_roof} Left:  {self.on_left} Right: {self.on_right}")
         # print(f"Charges: {self.jumps} Cooldown: {self.jumpCooldown}")
         

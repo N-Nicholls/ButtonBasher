@@ -37,7 +37,7 @@ class PhysChar(pygame.sprite.Sprite):
         self.velocity = Vector(0, 0)
         self.friction = fric
         self.elasticity = elas
-        self.passable = 0
+        self.passable = 0 # for blocks collided WITH
         self.on_ground = 0
         self.in_liquid = False
         self.drowning = False # used to be in_liquid, but now in_liquid doesn't dictate drowning so this does
@@ -69,6 +69,7 @@ class PhysChar(pygame.sprite.Sprite):
                     cover.update()'''
 
     def update(self, static = 0):
+        # static updates, such as block effects 
         if static != 0:
             for cover in [self.cover_top,self.cover_bottom, self.cover_left, self.cover_right]:
                 if cover is not None:
@@ -145,7 +146,7 @@ class PhysChar(pygame.sprite.Sprite):
         for block in self.game.state.blocks:
             if self.rect.colliderect(block.rect) and block.returnSubclass() == "spike":
                 block.onTop(self)
-            if self.rect.colliderect(block.rect) and block.passable == 0: 
+            if self.rect.colliderect(block.rect) and block.passable == 0 and self.passable == 0: 
                     if dx > 0: # moving right
                         self.rect.right = block.rect.left
                         block.onLeft(self)
@@ -170,7 +171,7 @@ class PhysChar(pygame.sprite.Sprite):
                     self.game.state.sword((self.rect.x, self.rect.y), self.direction)
                     player.die(10)
         for mobile in self.game.state.mobiles:
-            if self.rect.colliderect(mobile.rect) and mobile.passable == 0 and self.rect != mobile.rect and self.returnSubclass() != "gib":
+            if self.rect.colliderect(mobile.rect) and mobile.passable == 0 and self.passable == 0 and self.rect != mobile.rect and self.returnSubclass() != "gib":
                     if dx > 0: # moving right
                         self.rect.right = mobile.rect.left
                         mobile.onLeft(self)

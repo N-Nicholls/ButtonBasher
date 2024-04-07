@@ -31,8 +31,9 @@ class Liquid(pygame.sprite.Sprite):
 
 
     def inside(self, pc):
-        pc.in_liquid = True
-        if self.drownable:
-            pc.drowning = True
-        pc.velocity *= self.viscosity
-        pc.velocity += pc.gravity - Vector(0, self.buoyantForce)
+        if pc.passable == 0:
+            pc.in_liquid = True
+            if self.drownable:
+                pc.drowning = True
+            pc.velocity *= self.viscosity
+            pc.velocity += pc.gravity - Vector(0, self.buoyantForce)
