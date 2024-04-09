@@ -6,16 +6,16 @@ import math
 class Charge(PhysChar):
     def __init__(self, game, object,):
         # spawns them in a halfcircle around the objects
-        max_diffX = min(15, 30 + game.block_size) 
+        max_diffX = min(30, 60 + game.block_size) 
         diffX = random.randint(-max_diffX, max_diffX)
-        diffY = math.sqrt(15**2 - diffX**2)
+        diffY = math.sqrt(30**2 - diffX**2)
         self.object = object
         self.game = game
         self.max_dist = 60
         super().__init__(game, (object.rect.center) , "./sprites/charge-sheet.png", False, False, 0, 0, )
         self.rect.x = object.rect.x +diffX*2
         self.rect.y = object.rect.y -diffY*2
-        self.surf = self.sheet.image_at(1, 11, 11, 2, None, 0)
+        self.surf = self.sheet.image_at(1, 22, 22, 2, None, 0)
         self.gravity = Vector(0, 0)
         self.passable = 1
 
@@ -29,14 +29,14 @@ class Charge(PhysChar):
         if self.killed == True:
             if self.frame > 11:
                 self.kill()
-            self.surf = self.sheet.image_at(self.frame, 11, 11, 2, None, 0)
+            self.surf = self.sheet.image_at(self.frame, 22, 22, 2, None, 0)
             self.frame += 1
             return        
 
         if self.frame <= self.timeMax/2:
-            self.surf = self.sheet.image_at(1, 11, 11, 2, None, 0)
+            self.surf = self.sheet.image_at(1, 22, 22, 2, None, 0)
         else:
-            self.surf = self.sheet.image_at(2, 11, 11, 2, None, 0)
+            self.surf = self.sheet.image_at(2, 22, 22, 2, None, 0)
         self.frame+= 1
         if self.frame > self.timeMax:
             self.frame = 1

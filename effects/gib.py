@@ -10,7 +10,7 @@ class Gib(PhysChar):
         gibChoice = random.randint(1, 8) - 1
         gibSize = random.randint(1, 2)
         self.velocity = Vector(x, y)
-        self.surf = self.sheet.image_at(gibChoice, 13, 13, gibSize)
+        self.surf = self.sheet.image_at(gibChoice, 26, 26, gibSize)
         self.lifeSpan = random.randint(self.game.frame_rate, self.game.frame_rate*4)
 
     def update(self):

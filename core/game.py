@@ -21,7 +21,7 @@ class Game():
         # self.default = {'right': pygame.K_l, 'left': pygame.K_QUOTE, 'up': pygame.K_p, 'down': pygame.K_SEMICOLON, 'escape': pygame.K_ESCAPE, 'enemy': pygame.K_1, 'button': pygame.K_2, 'player': pygame.K_3}
         self.controls = self.load_controls(config_data_loaded["controls"]) # needs to convert json strings to PYGAME consts
 
-        self.block_size = self.screen_width/64 # maintains the ratio of 64x36 blocks for 16:9 resolution
+        self.block_size = 3840/64 # maintains the ratio of 64x36 blocks for 16:9 resolution, no longer based on variable resolution but absolute of 4k
         self.offset = self.block_size/2
 
         print(f'Screen Width: {self.screen_width}, Screen Height: {self.screen_height}, Frame Rate: {self.frame_rate}')
@@ -64,7 +64,7 @@ class Game():
                 if event.type == pygame.QUIT:
                     self.running = False
         
-            self.state.draw(self.screen)
+            self.state.draw(self.game_surface)
             self.state.handleEvents(events)
             self.state.update()
 

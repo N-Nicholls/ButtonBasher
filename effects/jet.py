@@ -8,7 +8,7 @@ class Jet(pygame.sprite.Sprite):
         # rendering
         
         # self.object = object
-        self.surf = self.sheet.image_at(0, 100, 25, .5)
+        self.surf = self.sheet.image_at(0, 200, 50, .5)
         self.rect = self.surf.get_rect(center=(pos[0]+ 22, pos[1] + 30))
         # self.rect.y +30
         self.frame = 1
@@ -17,7 +17,7 @@ class Jet(pygame.sprite.Sprite):
 
         if self.frame > 8:
             self.kill()
-        self.surf = self.sheet.image_at(self.frame-1, 13, 13, 2.5)
+        self.surf = self.sheet.image_at(self.frame-1, 26, 26, 2.5)
         self.frame += 1
 
 

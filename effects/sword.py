@@ -7,7 +7,7 @@ class Sword(pygame.sprite.Sprite):
         self.game = game
         self.sheet = SpriteSheet("./sprites/sword-sheet.png")
         # rendering
-        self.surf = self.sheet.image_at(0, 13, 13, 2)
+        self.surf = self.sheet.image_at(0, 26, 26, 2)
         self.rect = self.surf.get_rect(center=pos)
         self.rect.x += 40*direction
         self.rect.y + 20
@@ -17,7 +17,7 @@ class Sword(pygame.sprite.Sprite):
     def update(self):
         if self.frame > 8:
             self.kill()
-        self.surf = self.sheet.image_at(self.frame-1, 13, 13, 2.5)
+        self.surf = self.sheet.image_at(self.frame-1, 26, 26, 2.5)
 
         if self.direction == -1:
             self.surf = pygame.transform.flip(self.surf, True, False)

@@ -3,7 +3,7 @@
         "width": 1920,
         "height": 1080
     },
-    "frameRate": 30,
+    "frameRate": 60,
     "controls": {
         "up": "K_p",
         "down": "K_SEMICOLON",

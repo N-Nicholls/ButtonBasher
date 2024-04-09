@@ -8,7 +8,7 @@ class Bar(pygame.sprite.Sprite):
         self.object = object
         self.sheet = SpriteSheet("./sprites/bar.png")
         # rendering
-        self.surf = self.sheet.image_at(0, 100, 25, .5)
+        self.surf = self.sheet.image_at(0, 200, 50, .5)
         self.rect = self.surf.get_rect(center =(object.rect.x, object.rect.y))
         self.rect.y - 80
         self.frame = 1
@@ -22,6 +22,6 @@ class Bar(pygame.sprite.Sprite):
                 self.kill()
             self.frame = (10*self.game.frame_rate - self.object.breath) * 2.4 // self.game.frame_rate % 25
             # print(self.frame)
-            self.surf = self.sheet.image_at(self.frame, 100, 25, .5)
+            self.surf = self.sheet.image_at(self.frame, 200, 50, .5)
             self.rect.x = self.object.rect.x - 12.5
             self.rect.y = self.object.rect.y - 40

@@ -287,10 +287,17 @@ class LevelState(GameState):
         if self.COOLDOWN > 0:
             self.COOLDOWN -= 1
 
-    def draw(self, screen):
-        screen.fill((0, 0, 0))
+    def draw(self, surface):
+        surface.fill((0, 0, 0))
         for entity in self.all_sprites:
-            screen.blit(entity.surf, entity.rect)
+            surface.blit(entity.surf, entity.rect)
+
+        target_width = int(self.game.screen_width * (surface.get_width() / 3840))
+        target_height = int(self.game.screen_height * (surface.get_height() / 2460))
+        scaled_surface = pygame.Surface((target_width, target_height))
+        pygame.transform.scale(surface, (target_width, target_height), dest_surface=scaled_surface)
+        self.game.screen.blit(scaled_surface, (0, 0))
+        pygame.display.update()
             
 
 

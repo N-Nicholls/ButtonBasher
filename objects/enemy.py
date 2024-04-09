@@ -19,11 +19,14 @@ class Enemy(PhysChar):
     
     def canMove(self):
         nextPos = self.rect.copy()
-        nextPos.x += 20*self.direction
-        nextPos.y += 20
+        nextPos.x += 30*self.direction
+        nextPos.y += 30
+        nextPos2 = self.rect.copy()
+        nextPos2.x += 10*self.direction
+        nextPos2.y += 10
 
         for block in self.game.state.blocks:
-            if nextPos.colliderect(block.rect) and block.passable == 0:
+            if (nextPos.colliderect(block.rect) or nextPos2.colliderect(block.rect))and block.passable == 0:
                 return True
             elif self.on_ground == False:
                 return True
